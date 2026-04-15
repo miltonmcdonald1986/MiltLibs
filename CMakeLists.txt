@@ -16,34 +16,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Options
 option(MiltNURBS_BUILD_TESTS "Build unit tests" ON)
-option(MiltNURBS_BUILD_EXAMPLES "Build examples" OFF)
+option(MiltNURBS_BUILD_DEMOS "Build demo applications" ON)
 
-set(MiltNURBS_HEADERS
-	include/miltnurbs/bernstein.h
-    include/miltnurbs/bezier.h
-    include/miltnurbs/bmp.h
-	include/miltnurbs/horner.h
-    include/miltnurbs/vector.h
-)
-
-# Create INTERFACE library target (header-only)
-add_library(miltnurbs INTERFACE)
-
-# Set include directories
-target_include_directories(miltnurbs
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
-
-# Compiler warnings
-if(MSVC)
-    target_compile_options(miltnurbs INTERFACE /W4 /WX)
-else()
-    target_compile_options(miltnurbs INTERFACE -Wall -Wextra -Wpedantic -Werror)
-endif()
-
-target_sources(miltnurbs INTERFACE FILE_SET HEADERS BASE_DIRS include FILES ${MiltNURBS_HEADERS})
+# Build the library
+add_subdirectory(miltnurbs)
 
 # Unit tests
 if(MiltNURBS_BUILD_TESTS)
@@ -63,7 +39,7 @@ if(MiltNURBS_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# Examples
-if(MiltNURBS_BUILD_EXAMPLES)
-    add_subdirectory(examples)
+# Demos
+if(MiltNURBS_BUILD_DEMOS)
+    add_subdirectory(demos)
 endif()
