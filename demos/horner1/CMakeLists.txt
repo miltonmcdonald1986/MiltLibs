@@ -26,12 +26,12 @@ add_custom_command(TARGET horner1 POST_BUILD
 
 # Copy to dist folder for deployment
 add_custom_command(TARGET horner1 POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/dist
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/dist/horner1
     COMMAND ${CMAKE_COMMAND} -E copy 
         $<TARGET_FILE:horner1>
-        ${CMAKE_SOURCE_DIR}/dist/horner1.js
+        ${CMAKE_SOURCE_DIR}/dist/horner1/horner1.js
     COMMAND ${CMAKE_COMMAND} -E copy 
         ${CMAKE_CURRENT_SOURCE_DIR}/index.html
-        ${CMAKE_SOURCE_DIR}/dist/index.html
-    COMMENT "Copying files to dist folder"
+        ${CMAKE_SOURCE_DIR}/dist/horner1/index.html
+    COMMENT "Copying files to dist/horner1 folder"
 )
