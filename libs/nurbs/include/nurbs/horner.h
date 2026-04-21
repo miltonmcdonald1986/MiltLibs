@@ -1,5 +1,5 @@
-#ifndef MILTNURBS_HORNER_H
-#define MILTNURBS_HORNER_H
+#ifndef NURBS_HORNER_H
+#define NURBS_HORNER_H
 
 #include <span>
 #include <concepts>
@@ -14,7 +14,7 @@
  * This is a fundamental algorithm used in NURBS curve evaluation.
  */
 
-namespace miltnurbs::horner
+namespace nurbs::horner
 {
 
 	/**
@@ -65,7 +65,7 @@ namespace miltnurbs::horner
 	 * Example with vectors:
 	 * @code
 	 * // Evaluate a Bézier curve
-	 * using Vec3 = miltnurbs::vector::Vector<double, 3>;
+	 * using Vec3 = nurbs::vector::Vector<double, 3>;
 	 * std::array<Vec3, 4> controlPoints{
 	 *     Vec3(0.0, 0.0, 0.0),
 	 *     Vec3(1.0, 2.0, 0.0),
@@ -95,6 +95,6 @@ namespace miltnurbs::horner
 		return result;
 	}
 
-} // namespace miltnurbs
+} // namespace nurbs
 
-#endif // MILTNURBS_HORNER_H
+#endif // NURBS_HORNER_H

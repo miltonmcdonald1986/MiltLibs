@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
-#include "miltnurbs/bezier.h"
-#include "miltnurbs/bmp.h"
+#include "nurbs/bezier.h"
+#include "nurbs/bmp.h"
 #include <filesystem>
 
-using miltnurbs::bezier::BezierCurve;
-using miltnurbs::vector::Vector;
-using miltnurbs::bmp::Color;
-using miltnurbs::bmp::render_to_bmp;
-using miltnurbs::bmp::RenderConfig;
+using nurbs::bezier::BezierCurve;
+using nurbs::vector::Vector;
+using nurbs::bmp::Color;
+using nurbs::bmp::render_to_bmp;
+using nurbs::bmp::RenderConfig;
 
 // Helper to check if file was created
 bool file_exists(const std::string& filename) {

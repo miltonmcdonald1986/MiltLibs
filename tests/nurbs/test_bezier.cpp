@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "miltnurbs/bezier.h"
-#include "miltnurbs/vector.h"
+#include "nurbs/bezier.h"
+#include "nurbs/vector.h"
 
 #include <cmath>
 
-using miltnurbs::bezier::BezierCurve;
-using miltnurbs::vector::Vector;
+using nurbs::bezier::BezierCurve;
+using nurbs::vector::Vector;
 
 // ============================================================================
 // Construction and Basic Properties

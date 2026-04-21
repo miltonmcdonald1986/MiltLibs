@@ -8,15 +8,15 @@ set(TEST_SOURCES
     test_vector.cpp
 )
 
-add_executable(miltnurbs_tests ${TEST_SOURCES})
+add_executable(nurbs_tests ${TEST_SOURCES})
 
-target_link_libraries(miltnurbs_tests
+target_link_libraries(nurbs_tests
     PRIVATE
-        miltnurbs
+        nurbs
         GTest::gtest
         GTest::gtest_main
 )
 
 # Discover tests
 include(GoogleTest)
-gtest_discover_tests(miltnurbs_tests)
+gtest_discover_tests(nurbs_tests)

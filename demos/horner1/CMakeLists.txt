@@ -3,7 +3,7 @@ add_executable(horner1
 )
 
 target_link_libraries(horner1 PRIVATE
-	miltnurbs
+	nurbs
 	imgui
 	glfw
 	gl3w

@@ -1,5 +1,5 @@
-#ifndef MILTNURBS_VECTOR_H
-#define MILTNURBS_VECTOR_H
+#ifndef NURBS_VECTOR_H
+#define NURBS_VECTOR_H
 
 #include <array>
 #include <cstddef>
@@ -15,7 +15,7 @@
  * safety through C++20 concepts.
  */
 
-namespace miltnurbs::vector
+namespace nurbs::vector
 {
 
 	/**
@@ -175,6 +175,6 @@ namespace miltnurbs::vector
 		std::array<T, N> components{}; ///< Internal storage for vector components
 	};
 
-} // namespace miltnurbs::vector
+} // namespace nurbs::vector
 
-#endif // MILTNURBS_VECTOR_H
+#endif // NURBS_VECTOR_H

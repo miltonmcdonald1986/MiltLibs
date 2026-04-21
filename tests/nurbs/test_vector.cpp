@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <miltnurbs/vector.h>
+#include <nurbs/vector.h>
 
-using miltnurbs::vector::Vector;
+using nurbs::vector::Vector;
 
 // Test default constructor
 TEST(VectorTest, DefaultConstructor) {

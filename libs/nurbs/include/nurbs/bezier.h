@@ -1,14 +1,14 @@
-#ifndef MILTNURBS_BEZIER_H
-#define MILTNURBS_BEZIER_H
+#ifndef NURBS_BEZIER_H
+#define NURBS_BEZIER_H
 
-#include "miltnurbs/vector.h"
-#include "miltnurbs/bernstein.h"
+#include "nurbs/vector.h"
+#include "nurbs/bernstein.h"
 
 #include <array>
 #include <concepts>
 #include <cstddef>
 
-using miltnurbs::bernstein::all_bernstein;
+using nurbs::bernstein::all_bernstein;
 
 /**
  * @file bezier.h
@@ -17,7 +17,7 @@ using miltnurbs::bernstein::all_bernstein;
  * Implements parametric Bézier curves defined by control points.
  */
 
-namespace miltnurbs::bezier
+namespace nurbs::bezier
 {
 
 	/**
@@ -186,6 +186,6 @@ namespace miltnurbs::bezier
 		}
 	};
 
-} // namespace miltnurbs
+} // namespace nurbs
 
-#endif // MILTNURBS_BEZIER_H
+#endif // NURBS_BEZIER_H

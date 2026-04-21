@@ -1,5 +1,5 @@
-#ifndef MILTNURBS_BERNSTEIN_H
-#define MILTNURBS_BERNSTEIN_H
+#ifndef NURBS_BERNSTEIN_H
+#define NURBS_BERNSTEIN_H
 
 #include <concepts>
 #include <vector>
@@ -13,7 +13,7 @@
  * dynamic programming algorithm based on de Casteljau's method.
  */
 
-namespace miltnurbs::bernstein
+namespace nurbs::bernstein
 {
 
 	/**
@@ -160,8 +160,8 @@ namespace miltnurbs::bernstein
 		return basis;
 	}
 
-} // namespace miltnurbs
+} // namespace nurbs
 
-#endif // MILTNURBS_BERNSTEIN_H
+#endif // NURBS_BERNSTEIN_H
 
 

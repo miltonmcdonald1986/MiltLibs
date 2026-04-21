@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 
 
-project(MiltNURBS
+project(MiltLibs
     VERSION 0.1.0
-    DESCRIPTION "A modern C++ NURBS library"
+    DESCRIPTION "Milton's Libraries"
     LANGUAGES CXX C
 )
 
@@ -16,14 +16,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Options
-option(MiltNURBS_BUILD_TESTS "Build unit tests" ON)
-option(MiltNURBS_BUILD_DEMOS "Build demo applications" ON)
+option(MiltLibs_BUILD_TESTS "Build unit tests" ON)
+option(MiltLibs_BUILD_DEMOS "Build demo applications" ON)
 
 # Build the library
-add_subdirectory(miltnurbs)
+add_subdirectory(libs)
 
 # Unit tests
-if(MiltNURBS_BUILD_TESTS)
+if(MiltLibs_BUILD_TESTS)
     enable_testing()
     
     include(FetchContent)
@@ -41,7 +41,7 @@ if(MiltNURBS_BUILD_TESTS)
 endif()
 
 # Demos
-if(MiltNURBS_BUILD_DEMOS)
+if(MiltLibs_BUILD_DEMOS)
     include(FetchContent)
 
     # Fetch EnTT

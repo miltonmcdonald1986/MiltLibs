@@ -1,8 +1,8 @@
-#ifndef MILTNURBS_BEZIER_BMP_H
-#define MILTNURBS_BEZIER_BMP_H
+#ifndef NURBS_BEZIER_BMP_H
+#define NURBS_BEZIER_BMP_H
 
-#include "miltnurbs/bezier.h"
-#include "miltnurbs/vector.h"
+#include "nurbs/bezier.h"
+#include "nurbs/vector.h"
 #include <fstream>
 #include <vector>
 #include <cstdint>
@@ -17,7 +17,7 @@
  * Provides visualization tools for 2D Bézier curves.
  */
 
-namespace miltnurbs::bmp
+namespace nurbs::bmp
 {
 
 	/**
@@ -276,6 +276,6 @@ namespace miltnurbs::bmp
 		return image.save(filename);
 	}
 
-} // namespace miltnurbs::bmp
+} // namespace nurbs::bmp
 
-#endif // MILTNURBS_BEZIER_BMP_H
+#endif // NURBS_BEZIER_BMP_H

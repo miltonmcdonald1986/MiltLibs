@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
-#include "miltnurbs/bernstein.h"
+#include "nurbs/bernstein.h"
 
 #include <cmath>
 #include <numbers>
 #include <numeric>
 
-using miltnurbs::bernstein::all_bernstein;
-using miltnurbs::bernstein::bernstein;
+using nurbs::bernstein::all_bernstein;
+using nurbs::bernstein::bernstein;
 
 // ============================================================================
 // Endpoint Value Tests

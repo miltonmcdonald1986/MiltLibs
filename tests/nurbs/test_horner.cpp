@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "miltnurbs/horner.h"
-#include "miltnurbs/vector.h"
+#include "nurbs/horner.h"
+#include "nurbs/vector.h"
 #include <array>
 #include <cmath>
 
-using miltnurbs::horner::horner1;
-using miltnurbs::vector::Vector;
+using nurbs::horner::horner1;
+using nurbs::vector::Vector;
 
 // ============================================================================
 // Linear Polynomial Tests (Line Segments)
