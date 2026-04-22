@@ -11,89 +11,65 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-struct App
-{
-    struct {
-        struct {
-            struct {
-                int major{ 3 };
-                int minor{ 3 };
-            } version;
+#include <graphics/animation_systems.h>
+#include <graphics/app.h>
+#include <graphics/components/color.h>
+#include <graphics/components/flash.h>
+#include <graphics/components/mesh_gl.h>
+#include <graphics/components/shader.h>
+#include <graphics/factories/mesh_factories.h>
+#include <graphics/factories/prefab_factories.h>
+#include <graphics/gl_config.h>
+#include <graphics/gl_state.h>
+#include <graphics/glfw_callbacks.h>
+#include <graphics/mesh/mesh_factory_backend.h>
+#include <graphics/shader_factory.h>
 
-            int profile{ GLFW_OPENGL_CORE_PROFILE };
-        } gl;
+using graphics::app::App;
+using graphics::animation_systems::update_flash;
+using graphics::components::color::Color;
+using graphics::components::flash::Flash;
+using graphics::components::mesh_gl::MeshGL;
+using graphics::components::shader::Shader;
+using graphics::factories::mesh_factories::create_rainbow_triangle_mesh;
+using graphics::factories::prefab_factories::create_rainbow_triangle_ent;
+using graphics::glfw_callbacks::glfw_error_callback;
+using graphics::glfw_callbacks::glfw_framebuffer_size_callback;
+using graphics::mesh::mesh_factory_backend::create_mesh_gl_pos_only;
+using graphics::shader_factory::create_color_shader;
+using graphics::shader_factory::create_vertex_color_shader;
 
-        struct {
-            const char* title{ "horner1 Demo" };
-            GLFWmonitor* pMonitor{ nullptr };
-            GLFWwindow* pShare{ nullptr };
-        } win;
-    } config;
-
-    struct {
-        struct {
-            GLFWwindow* pHandle{ nullptr };
-            int height{ 600 };
-            int width{ 800 };
-        } win;
-
-        struct {
-            bool wireframe{ false };
-            float clearColor[3]{ 0.1f, 0.1f, 0.1f }; // RGB
-        } gl;
-
-        entt::registry reg;
-    } state;
-};
-
-void HandleGLFWError(int error_code, const char* description)
-{
-	std::print("GLFW Error (code {}): {}\n", error_code, description);
-}
-
-// This function will be called whenever the window is resized, allowing us to adjust the OpenGL viewport accordingly.
-void HandleGLFWFramebufferSizeEvent(GLFWwindow* pWindow, int w, int h)
-{
-    if (App* app = static_cast<App*>(glfwGetWindowUserPointer(pWindow)))
-    {
-        app->state.win.width = w;
-        app->state.win.height = h;
-    }
-
-    glViewport(0, 0, w, h);
-}
-
-void Shutdown(App& app)
+void Shutdown(graphics::app::App& app)
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(app.state.win.pHandle);
-    app.state.win.pHandle = nullptr;
+    glfwDestroyWindow(app.winState.pHandle);
+    app.winState.pHandle = nullptr;
     glfwTerminate();
 }
 
 // Initializes GLFW, creates a window, and sets up the OpenGL context. Returns an error message if any step fails.
 std::expected<void, std::string> InitPlatform(App& app)
 {
-    glfwSetErrorCallback(HandleGLFWError);
+    glfwSetErrorCallback(glfw_error_callback);
 
     if (glfwInit() != GLFW_TRUE)
         return std::unexpected("Failed to initialize GLFW");
 
     // Set the OpenGL version and profile we want to use.
-	auto& gl = app.config.gl;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl.version.major);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl.version.minor);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, gl.profile);
+	auto& glConfig = app.glConfig;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glConfig.version_major);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glConfig.version_minor);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, glConfig.profile);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
     // Create a window.
-	auto& winState = app.state.win;
-	auto& winConfig = app.config.win;
+	auto& winState = app.winState;
+	auto& winConfig = app.winConfig;
     if (GLFWwindow* window = glfwCreateWindow(winState.width, winState.height, winConfig.title, winConfig.pMonitor, winConfig.pShare))
         winState.pHandle = window;
     else
@@ -103,7 +79,7 @@ std::expected<void, std::string> InitPlatform(App& app)
     }
 
     glfwSetWindowUserPointer(winState.pHandle, &app);
-    glfwSetFramebufferSizeCallback(winState.pHandle, HandleGLFWFramebufferSizeEvent);
+    glfwSetFramebufferSizeCallback(winState.pHandle, glfw_framebuffer_size_callback);
     
 	return {};
 }
@@ -111,7 +87,7 @@ std::expected<void, std::string> InitPlatform(App& app)
 std::expected<void, std::string> InitGLContext(App& app)
 {
 	// Make the OpenGL context of our window current on the calling thread.
-    glfwMakeContextCurrent(app.state.win.pHandle);
+    glfwMakeContextCurrent(app.winState.pHandle);
     
 	// Enable V-Sync
     glfwSwapInterval(1);
@@ -125,22 +101,20 @@ std::expected<void, std::string> InitGLContext(App& app)
 
 std::expected<void, std::string> InitGLState(App &app)
 {
-    // Set the initial OpenGL viewport to match the window size.
     int w, h;
-    glfwGetFramebufferSize(app.state.win.pHandle, &w, &h);
+    glfwGetFramebufferSize(app.winState.pHandle, &w, &h);
     glViewport(0, 0, w, h);
 
-	// Enable depth testing to ensure correct rendering of 3D objects based on their distance from the camera.
-    glEnable(GL_DEPTH_TEST); 
-    
-	// Set the depth function to GL_LESS, which means that a fragment will be drawn if it is closer to the camera than the existing fragment at that pixel.
-    glDepthFunc(GL_LESS);
+    if (app.glState.enable_depth_test)
+    {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(app.glState.depth_func);
+    }    
 
-	// Comment this out to fill the triangles instead of just drawing their edges.
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, app.glState.polygon_mode);
     
-    // Set the clear color to a dark gray.
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	auto& clearColor = app.glState.clear_color;
+	glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
 	// Check for any OpenGL errors that may have occurred during initialization.
     if (glGetError() != GL_NO_ERROR)
@@ -149,27 +123,24 @@ std::expected<void, std::string> InitGLState(App &app)
     return {};
 }
 
-struct Shader
-{
-	GLuint id{ 0 };
-};
-
-struct MeshGL {
-	GLenum primitive = GL_TRIANGLES;
-    GLuint vao = 0;
-    GLuint vbo = 0;
-    GLuint ebo = 0;
-    GLsizei vertexCount = 0; // for non-indexed
-    GLsizei indexCount = 0;  // for indexed
-};
-
 std::expected<void, std::string> Update(App& app)
 {
     // Handle ImGui updates first.
     ImGui::Begin("Render Settings");
-    ImGui::Checkbox("Wireframe", &app.state.gl.wireframe);
-    ImGui::ColorEdit3("Background", app.state.gl.clearColor);
+    ImGui::Checkbox("Wireframe", &app.glState.display_wireframe);
+    ImGui::ColorEdit3("Background", app.glState.clear_color);
     ImGui::End();
+
+    // Edit per‑entity color
+    ImGui::Begin("Entity Colors");
+    auto view = app.reg.view<Color>();
+    for (auto [entity, color] : view.each()) {
+        std::string label = "entity " + std::to_string((uint32_t)entity);
+        ImGui::ColorEdit4(label.c_str(), color.base);
+    }
+    ImGui::End();
+
+	update_flash(app.reg, app.delta_time);
 
     return {};
 }
@@ -177,23 +148,32 @@ std::expected<void, std::string> Update(App& app)
 std::expected<void, std::string> Render(App& app)
 {
     glClearColor(
-        app.state.gl.clearColor[0],
-        app.state.gl.clearColor[1],
-        app.state.gl.clearColor[2],
-        1.0f
+        app.glState.clear_color[0],
+        app.glState.clear_color[1],
+        app.glState.clear_color[2],
+        app.glState.clear_color[3]
     );
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(app.glState.clear_buffer_mask);
 
-    if (app.state.gl.wireframe)
+    if (app.glState.display_wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    auto view = app.state.reg.view<Shader, MeshGL>();
-    for (auto [entity, shader, mesh] : view.each())
+    auto ents = app.reg.view<Shader, MeshGL>();
+    for (auto [entity, shader, mesh] : ents.each())
     {
         glUseProgram(shader.id);
+
+		// If the entity has a Color component, set the shader uniform.
+		if (auto result = app.reg.try_get<Color>(entity); result) 
+        {
+            Color& color = *result; 
+            GLint loc = glGetUniformLocation(shader.id, "u_color");
+            glUniform4fv(loc, 1, color.rgba);
+        }
+
         if (mesh.indexCount > 0) {
             glBindVertexArray(mesh.vao);
             glDrawElements(mesh.primitive, mesh.indexCount, GL_UNSIGNED_INT, 0);
@@ -205,109 +185,6 @@ std::expected<void, std::string> Render(App& app)
     }
 
     return {};
-}
-
-std::expected<GLuint, std::string> CreateBasicShader()
-{
-    const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
-
-    const char* fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\n\0";
-
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        return std::unexpected(std::format("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}\n", infoLog));
-    }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        return std::unexpected(std::format("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}\n", infoLog));
-    }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        return std::unexpected(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog));
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return shaderProgram;
-}
-
-std::expected<MeshGL, std::string>
-CreateMeshGL(const float* vertices, std::size_t floatCount,
-    GLint componentsPerVertex = 3, GLenum primitive = GL_TRIANGLES)
-{
-    MeshGL mesh{};
-    mesh.primitive = primitive;
-
-    // Compute vertex count
-    if (floatCount % componentsPerVertex != 0)
-        return std::unexpected("Vertex data size does not match attribute layout");
-
-    mesh.vertexCount = static_cast<GLsizei>(floatCount / componentsPerVertex);
-
-    // --- VAO ---
-    glGenVertexArrays(1, &mesh.vao);
-    glBindVertexArray(mesh.vao);
-
-    // --- VBO ---
-    glGenBuffers(1, &mesh.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-        floatCount * sizeof(float),
-        vertices,
-        GL_STATIC_DRAW);
-
-    // --- Vertex Attribute ---
-    glVertexAttribPointer(
-        0,                          // location
-        componentsPerVertex,        // vec2, vec3, vec4
-        GL_FLOAT,
-        GL_FALSE,
-        componentsPerVertex * sizeof(float),
-        (void*)0
-    );
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-
-    if (glGetError() != GL_NO_ERROR)
-        return std::unexpected("Failed to create MeshGL");
-
-    return mesh;
 }
 
 std::expected<MeshGL, std::string>
@@ -375,7 +252,7 @@ void InitImGui(App& app)
 
     ImGui::StyleColorsDark();
 
-    ImGui_ImplGlfw_InitForOpenGL(app.state.win.pHandle, true);
+    ImGui_ImplGlfw_InitForOpenGL(app.winState.pHandle, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
@@ -405,25 +282,36 @@ int main(void)
     }
 
 	// Let's create a triangle for demo purposes.
-	entt::entity ent_triangle = app.state.reg.create();
-    float vertices[] = {
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
-    };
-    
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+    auto color_shader_result = create_color_shader();
+    if (!color_shader_result)
+    {
+        std::print("Failed to create shader: {}\n", color_shader_result.error());
+        return -1;
+	}
+
+    auto ent_rainbow_triangle = create_rainbow_triangle_ent(app.reg);
+
+    entt::entity ent_right_triangle = app.reg.create();
+    float right_triangle_vertices[] = {
+         0.25f,  0.25f, 0.0f,   // top-left
+         0.75f,  0.25f, 0.0f,   // top-right
+         0.50f, -0.25f, 0.0f    // bottom
     };
 
-	app.state.reg.emplace<Shader>(ent_triangle, CreateBasicShader().value_or(0U));
-	app.state.reg.emplace<MeshGL>(ent_triangle, CreateIndexedMeshGL(vertices, 12, indices, 6).value_or(MeshGL{}));
+	Color right_triangle_color(0.2f, 0.4f, 1.0f, 1.0f);
+    app.reg.emplace<Color>(ent_right_triangle, right_triangle_color);
+    app.reg.emplace<Shader>(ent_right_triangle, *color_shader_result);
+    app.reg.emplace<MeshGL>(ent_right_triangle, *create_mesh_gl_pos_only(right_triangle_vertices));
+    app.reg.emplace<Flash>(ent_right_triangle, Flash{});
 
-	auto* pWin = app.state.win.pHandle;
+    double last_time = glfwGetTime();
+	auto* pWin = app.winState.pHandle;
     while (!glfwWindowShouldClose(pWin))
     {
+        double now = glfwGetTime();
+        app.delta_time = now - last_time;
+        last_time = now;
+
 		// Poll for and process events (e.g., keyboard input, mouse movement, window resizing).
         glfwPollEvents();
 

@@ -1,0 +1,18 @@
+#ifndef GRAPHICS_GL_CONFIG_H
+#define GRAPHICS_GL_CONFIG_H
+
+#include <GLFW/glfw3.h>
+
+namespace graphics::gl_config
+{
+
+    struct GLConfig
+    {
+        int profile{ GLFW_OPENGL_CORE_PROFILE };
+        int version_major{ 3 };
+        int version_minor{ 3 };
+    };
+
+}
+
+#endif // GRAPHICS_GL_CONFIG_H
