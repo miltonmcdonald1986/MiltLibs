@@ -51,6 +51,27 @@ namespace graphics::shader_factory
 	std::expected<GLuint, std::string> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path);
 
 	/// <summary>
+	/// Creates a basic textured shader program.
+	///
+	/// The shader expects two vertex attributes:
+	///   layout(location = 0): vec3 position
+	///   layout(location = 1): vec2 uv
+	///
+	/// The vertex shader passes UV coordinates to the fragment shader,
+	/// which samples from a 2D texture bound to texture unit 0.
+	/// The fragment shader outputs the sampled texel color directly,
+	/// with no lighting, tinting, or additional processing.
+	///
+	/// This shader is suitable for rendering textured geometry such as
+	/// sprites, quads, UI elements, or any mesh with position + UV data.
+	/// </summary>
+	/// <returns>
+	/// On success, contains the OpenGL program ID for the linked shader.
+	/// On failure, contains a descriptive error message.
+	/// </returns>
+	std::expected<GLuint, std::string> create_textured_shader();
+
+	/// <summary>
 	/// Creates a simple vertex-color shader program.
 	///
 	/// The shader expects two vertex attributes:

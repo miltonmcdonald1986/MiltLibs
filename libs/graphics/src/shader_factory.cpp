@@ -152,6 +152,41 @@ namespace graphics::shader_factory
 		return create_program_from_sources(vertex_src_result->c_str(), fragment_src_result->c_str());
 	}
 
+	std::expected<GLuint, std::string> create_textured_shader()
+	{
+		static const char* vertex_src = R"(
+        #version 330 core
+
+        layout(location = 0) in vec3 aPos;
+        layout(location = 1) in vec2 aUV;
+
+        out vec2 vUV;
+
+        void main()
+        {
+            gl_Position = vec4(aPos, 1.0);
+            vUV = aUV;
+        }
+    )";
+
+		static const char* fragment_src = R"(
+        #version 330 core
+
+        in vec2 vUV;
+        out vec4 FragColor;
+
+        uniform sampler2D uTexture;
+
+        void main()
+        {
+            FragColor = texture(uTexture, vUV);
+        }
+    )";
+
+		return create_program_from_sources(vertex_src, fragment_src);
+	}
+
+
 	std::expected<GLuint, std::string> create_vertex_color_shader()
 	{
 		const char* vertex_shader_source = "#version 330 core\n"

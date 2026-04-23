@@ -4,13 +4,37 @@
 #include <graphics/factories/mesh_factories.h>
 #include <graphics/shader_factory.h>
 
+using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
+using graphics::factories::mesh_factories::create_triangle_mesh;
 using graphics::factories::mesh_factories::create_rainbow_triangle_mesh;
+using graphics::shader_factory::create_color_shader;
 using graphics::shader_factory::create_vertex_color_shader;
 
 namespace graphics::factories::prefab_factories
 {
+
+    std::expected<entt::entity, std::string> create_solid_color_triangle_ent(entt::registry& reg, const Color& color)
+    {
+        auto meshResult = create_triangle_mesh();
+		if (!meshResult)
+            return std::unexpected(std::format("Failed to create mesh: {}\n", meshResult.error()));
+
+		MeshGL mesh = *meshResult;
+
+        auto color_shader_result = create_color_shader();
+        if (!color_shader_result) 
+            return std::unexpected(std::format("Failed to create shader: {}\n", color_shader_result.error()));
+        
+        GLuint color_shader = *color_shader_result;
+        entt::entity ent_triangle = reg.create();
+        reg.emplace<Color>(ent_triangle, color);
+        reg.emplace<Shader>(ent_triangle, color_shader);
+		reg.emplace<MeshGL>(ent_triangle, *meshResult);
+
+		return ent_triangle;
+    }
 
 	std::expected<entt::entity, std::string> create_rainbow_triangle_ent(entt::registry& reg)
 	{

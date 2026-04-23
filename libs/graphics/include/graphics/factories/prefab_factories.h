@@ -5,8 +5,32 @@
 
 #include <entt/entt.hpp>
 
+#include <graphics/components/color.h>
+
 namespace graphics::factories::prefab_factories
 {
+
+	/// <summary>
+	/// Creates an ECS entity representing a solid‑colored triangle.
+	///
+	/// This prefab:
+	///   • creates a MeshGL using create_solid_color_triangle_mesh()
+	///   • creates a flat‑color shader using create_flat_color_shader()
+	///   • attaches MeshGL, Shader, and Color components to the entity
+	///   • does not assign a Transform (caller may add one)
+	///
+	/// On success, returns an entt::entity containing MeshGL, Shader, and Color components.
+	/// On failure, returns an error message describing the underlying issue.
+	/// </summary>
+	/// <param name="reg">The EnTT registry used to create and populate the entity.</param>
+	/// <param name="color">The RGBA color to apply to the triangle.</param>
+	/// <returns>
+	/// std::expected containing:
+	///   • entt::entity on success
+	///   • std::string error message on failure
+	/// </returns>
+	std::expected<entt::entity, std::string> create_solid_color_triangle_ent(entt::registry& reg, const components::color::Color& color);
+
 
 	/// <summary>
 	/// Creates an ECS entity representing a rainbow-colored triangle.

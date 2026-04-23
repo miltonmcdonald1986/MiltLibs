@@ -4,141 +4,59 @@
 
 #include <entt/entt.hpp>
 
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
-
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include <graphics/animation_systems.h>
-#include <graphics/app.h>
+#include <graphics/app/app.h>
+#include <graphics/app/app_guard.h>
+#include <graphics/app/lifecycle.h>
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/mesh_gl.h>
 #include <graphics/components/shader.h>
+#include <graphics/components/texture.h>
 #include <graphics/factories/mesh_factories.h>
 #include <graphics/factories/prefab_factories.h>
+#include <graphics/factories/texture_factories.h>
 #include <graphics/gl_config.h>
 #include <graphics/gl_state.h>
-#include <graphics/glfw_callbacks.h>
 #include <graphics/mesh/mesh_factory_backend.h>
 #include <graphics/shader_factory.h>
+#include <graphics/ui/widgets.h>
 
-using graphics::app::App;
+using graphics::app::app::App;
+using graphics::app::app_guard::AppGuard;
+using graphics::app::lifecycle::InitGLContext;
+using graphics::app::lifecycle::InitGLState;
+using graphics::app::lifecycle::InitPlatform;
 using graphics::animation_systems::update_flash;
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
+using graphics::components::texture::Texture;
 using graphics::factories::mesh_factories::create_rainbow_triangle_mesh;
+using graphics::factories::mesh_factories::create_textured_triangle_mesh;
 using graphics::factories::prefab_factories::create_rainbow_triangle_ent;
-using graphics::glfw_callbacks::glfw_error_callback;
-using graphics::glfw_callbacks::glfw_framebuffer_size_callback;
+using graphics::factories::prefab_factories::create_solid_color_triangle_ent;
+using graphics::factories::texture_factories::create_texture_from_file;
+using graphics::mesh::mesh_factory_backend::create_mesh_gl_layout;
 using graphics::mesh::mesh_factory_backend::create_mesh_gl_pos_only;
 using graphics::shader_factory::create_color_shader;
+using graphics::shader_factory::create_textured_shader;
 using graphics::shader_factory::create_vertex_color_shader;
-
-void Shutdown(graphics::app::App& app)
-{
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(app.winState.pHandle);
-    app.winState.pHandle = nullptr;
-    glfwTerminate();
-}
-
-// Initializes GLFW, creates a window, and sets up the OpenGL context. Returns an error message if any step fails.
-std::expected<void, std::string> InitPlatform(App& app)
-{
-    glfwSetErrorCallback(glfw_error_callback);
-
-    if (glfwInit() != GLFW_TRUE)
-        return std::unexpected("Failed to initialize GLFW");
-
-    // Set the OpenGL version and profile we want to use.
-	auto& glConfig = app.glConfig;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glConfig.version_major);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glConfig.version_minor);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, glConfig.profile);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // Create a window.
-	auto& winState = app.winState;
-	auto& winConfig = app.winConfig;
-    if (GLFWwindow* window = glfwCreateWindow(winState.width, winState.height, winConfig.title, winConfig.pMonitor, winConfig.pShare))
-        winState.pHandle = window;
-    else
-    {
-        Shutdown(app);
-		return std::unexpected("Failed to create GLFW window");
-    }
-
-    glfwSetWindowUserPointer(winState.pHandle, &app);
-    glfwSetFramebufferSizeCallback(winState.pHandle, glfw_framebuffer_size_callback);
-    
-	return {};
-}
-
-std::expected<void, std::string> InitGLContext(App& app)
-{
-	// Make the OpenGL context of our window current on the calling thread.
-    glfwMakeContextCurrent(app.winState.pHandle);
-    
-	// Enable V-Sync
-    glfwSwapInterval(1);
-
-    // Initialize OpenGL function pointers using gl3w (or any other OpenGL loader).
-    if (gl3wInit() != 0) 
-        return std::unexpected("Failed to initialize gl3w");
-
-    return {};
-}
-
-std::expected<void, std::string> InitGLState(App &app)
-{
-    int w, h;
-    glfwGetFramebufferSize(app.winState.pHandle, &w, &h);
-    glViewport(0, 0, w, h);
-
-    if (app.glState.enable_depth_test)
-    {
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(app.glState.depth_func);
-    }    
-
-    glPolygonMode(GL_FRONT_AND_BACK, app.glState.polygon_mode);
-    
-	auto& clearColor = app.glState.clear_color;
-	glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-
-	// Check for any OpenGL errors that may have occurred during initialization.
-    if (glGetError() != GL_NO_ERROR)
-        return std::unexpected("Failed to init GL state");
-
-    return {};
-}
+using graphics::ui::widgets::draw_flash_widget;
+using graphics::ui::widgets::draw_per_entity_color_widget;
+using graphics::ui::widgets::draw_render_settings_widget;
 
 std::expected<void, std::string> Update(App& app)
 {
-    // Handle ImGui updates first.
-    ImGui::Begin("Render Settings");
-    ImGui::Checkbox("Wireframe", &app.glState.display_wireframe);
-    ImGui::ColorEdit3("Background", app.glState.clear_color);
-    ImGui::End();
-
-    // Edit per‑entity color
-    ImGui::Begin("Entity Colors");
-    auto view = app.reg.view<Color>();
-    for (auto [entity, color] : view.each()) {
-        std::string label = "entity " + std::to_string((uint32_t)entity);
-        ImGui::ColorEdit4(label.c_str(), color.base);
-    }
-    ImGui::End();
+	// draw widgets before updating animations so that UI changes are reflected immediately in the same frame
+    draw_render_settings_widget(app);
+    draw_per_entity_color_widget(app);
+    draw_flash_widget(app);
 
 	update_flash(app.reg, app.delta_time);
 
@@ -166,22 +84,32 @@ std::expected<void, std::string> Render(App& app)
     {
         glUseProgram(shader.id);
 
-		// If the entity has a Color component, set the shader uniform.
-		if (auto result = app.reg.try_get<Color>(entity); result) 
+        // --- Optional Color uniform ---
+        if (auto color = app.reg.try_get<Color>(entity))
         {
-            Color& color = *result; 
             GLint loc = glGetUniformLocation(shader.id, "u_color");
-            glUniform4fv(loc, 1, color.rgba);
+            if (loc >= 0)
+                glUniform4fv(loc, 1, color->rgba);
         }
 
-        if (mesh.indexCount > 0) {
-            glBindVertexArray(mesh.vao);
+        // --- Optional Texture binding ---
+        if (auto tex = app.reg.try_get<Texture>(entity))
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, tex->id);
+
+            GLint loc = glGetUniformLocation(shader.id, "uTexture");
+            if (loc >= 0)
+                glUniform1i(loc, 0); // texture unit 0
+        }
+
+        // --- Draw ---
+        glBindVertexArray(mesh.vao);
+
+        if (mesh.indexCount > 0)
             glDrawElements(mesh.primitive, mesh.indexCount, GL_UNSIGNED_INT, 0);
-        }
-        else {
-            glBindVertexArray(mesh.vao);
+        else
             glDrawArrays(mesh.primitive, 0, mesh.vertexCount);
-        }
     }
 
     return {};
@@ -280,29 +208,20 @@ int main(void)
         std::print("Failed to initialize OpenGL state: {}\n", result.error());
         return -1;
     }
+    
+    // RAII guard: runs Shutdown(app) when this scope ends.
+    AppGuard guard{ app };
 
-	// Let's create a triangle for demo purposes.
-    auto color_shader_result = create_color_shader();
-    if (!color_shader_result)
-    {
-        std::print("Failed to create shader: {}\n", color_shader_result.error());
-        return -1;
-	}
+    entt::entity e = app.reg.create();
 
-    auto ent_rainbow_triangle = create_rainbow_triangle_ent(app.reg);
+    if (auto mesh_result = create_textured_triangle_mesh())
+        app.reg.emplace<MeshGL>(e, *mesh_result);
+    
+    if (auto texture_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
+        app.reg.emplace<Texture>(e, *texture_result);
 
-    entt::entity ent_right_triangle = app.reg.create();
-    float right_triangle_vertices[] = {
-         0.25f,  0.25f, 0.0f,   // top-left
-         0.75f,  0.25f, 0.0f,   // top-right
-         0.50f, -0.25f, 0.0f    // bottom
-    };
-
-	Color right_triangle_color(0.2f, 0.4f, 1.0f, 1.0f);
-    app.reg.emplace<Color>(ent_right_triangle, right_triangle_color);
-    app.reg.emplace<Shader>(ent_right_triangle, *color_shader_result);
-    app.reg.emplace<MeshGL>(ent_right_triangle, *create_mesh_gl_pos_only(right_triangle_vertices));
-    app.reg.emplace<Flash>(ent_right_triangle, Flash{});
+    if (auto shader_result = create_textured_shader())
+		app.reg.emplace<Shader>(e, *shader_result);
 
     double last_time = glfwGetTime();
 	auto* pWin = app.winState.pHandle;
@@ -332,6 +251,5 @@ int main(void)
         glfwSwapBuffers(pWin);
     }
 
-    Shutdown(app);
     return 0;
 }

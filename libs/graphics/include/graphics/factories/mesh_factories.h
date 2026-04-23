@@ -32,6 +32,57 @@ namespace graphics::factories::mesh_factories
 	/// </returns>
 	std::expected<components::mesh_gl::MeshGL, std::string> create_rainbow_triangle_mesh();
 
+	/// <summary>
+	/// Creates a MeshGL representing a triangle with position and UV attributes,
+	/// suitable for rendering with a texture-sampling shader.
+	///
+	/// This mesh:
+	///   • contains 3 vertices
+	///   • each vertex stores:
+	///       - position (x, y, z) at location 0
+	///       - UV coordinates (u, v) at location 1
+	///   • uses an interleaved vertex layout (3 floats position, 2 floats UV)
+	///   • does not use an index buffer (drawn with glDrawArrays)
+	///
+	/// The triangle is defined in normalized device coordinates:
+	///   (-0.5, -0.5, 0.0)  → UV (0.0, 0.0)
+	///   ( 0.5, -0.5, 0.0)  → UV (1.0, 0.0)
+	///   ( 0.0,  0.5, 0.0)  → UV (0.5, 1.0)
+	///
+	/// On success, returns a MeshGL containing a VAO, VBO, and vertex count.
+	/// On failure, returns an error message describing the underlying issue.
+	/// </summary>
+	/// <returns>
+	/// std::expected containing:
+	///   • MeshGL on success
+	///   • std::string error message on failure
+	/// </returns>
+	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_triangle_mesh();
+
+	/// <summary>
+	/// Creates a MeshGL representing a basic triangle with position‑only vertices.
+	///
+	/// This mesh:
+	///   • contains 3 vertices, each with a 3‑float position (x, y, z)
+	///   • uses a single vertex attribute at location 0 (position)
+	///   • does not include per‑vertex color, normals, or UVs
+	///   • is intended for use with shaders that supply color via a uniform
+	///
+	/// The triangle is defined in normalized device coordinates:
+	///   (-0.5, -0.5, 0.0)
+	///   ( 0.5, -0.5, 0.0)
+	///   ( 0.0,  0.5, 0.0)
+	///
+	/// On success, returns a MeshGL containing a VAO, VBO, and vertex count.
+	/// On failure, returns an error message describing the underlying issue.
+	/// </summary>
+	/// <returns>
+	/// std::expected containing:
+	///   • MeshGL on success
+	///   • std::string error message on failure
+	/// </returns>
+	std::expected<components::mesh_gl::MeshGL, std::string> create_triangle_mesh();
+
 }
 
 #endif // GRAPHICS_FACTORIES_MESH_FACTORIES_H

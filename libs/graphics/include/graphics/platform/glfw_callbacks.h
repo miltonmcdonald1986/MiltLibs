@@ -1,9 +1,9 @@
-#ifndef GRAPHICS_GLFW_CALLBACKS_H
-#define GRAPHICS_GLFW_CALLBACKS_H
+#ifndef GRAPHICS_PLATFORM_GLFW_CALLBACKS_H
+#define GRAPHICS_PLATFORM_GLFW_CALLBACKS_H
 
 #include <GLFW/glfw3.h>
 
-namespace graphics::glfw_callbacks
+namespace graphics::platform::glfw_callbacks
 {
 
 	/// <summary>
@@ -23,4 +23,4 @@ namespace graphics::glfw_callbacks
 
 }
 
-#endif // GRAPHICS_GLFW_CALLBACKS_H
+#endif // GRAPHICS_PLATFORM_GLFW_CALLBACKS_H
