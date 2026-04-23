@@ -58,6 +58,7 @@ target_link_libraries(graphics
         EnTT::EnTT
         glfw
         gl3w
+        glm::glm
         imgui
         OpenGL::GL
 )

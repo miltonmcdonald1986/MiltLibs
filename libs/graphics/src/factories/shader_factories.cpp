@@ -152,6 +152,42 @@ namespace graphics::factories::shader_factories
 		return create_program_from_sources(vertex_src_result->c_str(), fragment_src_result->c_str());
 	}
 
+	std::expected<GLuint, std::string> create_textured_mvp_shader()
+	{
+		const char* vertex_src = R"(
+        #version 330 core
+        layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec2 aUV;
+
+        uniform mat4 uModel;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
+
+        out vec2 vUV;
+
+        void main()
+        {
+            gl_Position = uProjection * uView * uModel * vec4(aPos, 1.0);
+            vUV = aUV;
+        }
+    )";
+
+		const char* fragment_src = R"(
+        #version 330 core
+        in vec2 vUV;
+        out vec4 FragColor;
+
+        uniform sampler2D uTexture;
+
+        void main()
+        {
+            FragColor = texture(uTexture, vUV);
+        }
+    )";
+
+		return create_program_from_sources(vertex_src, fragment_src);
+	}
+
 	std::expected<GLuint, std::string> create_textured_shader()
 	{
 		static const char* vertex_src = R"(

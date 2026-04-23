@@ -48,6 +48,14 @@ FetchContent_Declare(
 	GIT_TAG master
 )
 FetchContent_MakeAvailable(gl3w)
+
+# Fetch GLM
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.3   # or whatever version you want
+)
+FetchContent_MakeAvailable(glm)
     
 # Fetch ImGui
 FetchContent_Declare(

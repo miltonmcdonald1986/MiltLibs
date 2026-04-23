@@ -51,6 +51,36 @@ namespace graphics::factories::shader_factories
 	std::expected<GLuint, std::string> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path);
 
 	/// <summary>
+	/// Creates a textured shader program with full Model‑View‑Projection (MVP) support.
+	///
+	/// The shader expects the following vertex attributes:
+	///   layout(location = 0): vec3 position
+	///   layout(location = 1): vec2 uv
+	///
+	/// The vertex shader applies three transformation matrices:
+	///   - <c>uModel</c>:   transforms object‑space vertices into world space
+	///   - <c>uView</c>:    transforms world space into camera (view) space
+	///   - <c>uProjection</c>: applies perspective or orthographic projection
+	///
+	/// Together, these matrices implement the standard MVP pipeline used in
+	/// 2D and 3D rendering. After transformation, the vertex shader forwards
+	/// UV coordinates to the fragment shader.
+	///
+	/// The fragment shader samples from a 2D texture bound to texture unit 0
+	/// and outputs the texel color directly, with no lighting or tinting.
+	///
+	/// This shader is suitable for rendering textured meshes that require
+	/// world‑space positioning, camera movement, or perspective projection,
+	/// such as 3D models, sprites in world space, or any geometry using
+	/// position + UV vertex data.
+	/// </summary>
+	/// <returns>
+	/// On success, contains the OpenGL program ID for the linked shader.
+	/// On failure, contains a descriptive error message.
+	/// </returns>
+	std::expected<GLuint, std::string> create_textured_mvp_shader();
+
+	/// <summary>
 	/// Creates a basic textured shader program.
 	///
 	/// The shader expects two vertex attributes:
