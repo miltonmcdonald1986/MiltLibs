@@ -3,21 +3,26 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <graphics/components/camera.h>
 #include <graphics/components/color.h>
 #include <graphics/components/mesh_gl.h>
 #include <graphics/components/shader.h>
 #include <graphics/components/texture.h>
 #include <graphics/components/transform.h>
 #include <graphics/components/world_matrix.h>
+#include <graphics/systems/camera.h>
 #include <graphics/systems/transform.h>
 
 using graphics::app::app::App;
+using graphics::components::camera::Camera;
+using graphics::components::camera::ProjectionType;
 using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::components::texture::Texture;
 using graphics::components::transform::Transform;
 using graphics::components::world_matrix::WorldMatrix;
+using graphics::systems::camera::compute_projection;
 using graphics::systems::transform::compute_model_matrix;
 
 namespace graphics::systems::render
@@ -39,6 +44,35 @@ namespace graphics::systems::render
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+        // ---------------------------------------------------------
+        // 1. Find the active camera
+        // ---------------------------------------------------------
+        entt::entity camEntity = entt::null;
+        auto camView = app.reg.view<Camera, WorldMatrix>();
+
+        for (auto e : camView) {
+            if (camView.get<Camera>(e).primary) {
+                camEntity = e;
+                break;
+            }
+        }
+
+        if (camEntity == entt::null) {
+            return std::unexpected("No active camera found");
+        }
+
+        auto& cam = app.reg.get<Camera>(camEntity);
+        auto& camWM = app.reg.get<WorldMatrix>(camEntity);
+
+        // ---------------------------------------------------------
+        // 2. Compute view + projection
+        // ---------------------------------------------------------
+        glm::mat4 view = glm::inverse(camWM.value);
+        glm::mat4 proj = compute_projection(cam);
+
+        // ---------------------------------------------------------
+        // 3. Render all meshes
+        // ---------------------------------------------------------
         auto ents = app.reg.view<Shader, MeshGL>();
         for (auto [entity, shader, mesh] : ents.each())
         {
@@ -60,35 +94,20 @@ namespace graphics::systems::render
 
                 GLint loc = glGetUniformLocation(shader.id, "uTexture");
                 if (loc >= 0)
-                    glUniform1i(loc, 0); // texture unit 0
-
-                // If no color component, the texture will render black unless we set the uniform ourselves here:
-                if (!app.reg.any_of<Color>(entity))
-                {
-                    float white[4] = { 1.f, 1.f, 1.f, 1.f };
-                    loc = glGetUniformLocation(shader.id, "u_color");
-                    if (loc >= 0)
-                        glUniform4fv(loc, 1, white);
-                }
+                    glUniform1i(loc, 0);
             }
 
-            // Upload uModel
+            // --- Upload uModel ---
             if (GLint loc = glGetUniformLocation(shader.id, "uModel"); loc >= 0)
                 glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(app.reg.get<WorldMatrix>(entity).value));
 
-            // Upload identity uView
+            // --- Upload uView ---
             if (GLint loc = glGetUniformLocation(shader.id, "uView"); loc >= 0)
-            {
-                glm::mat4 view = glm::mat4(1.0f);
                 glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
-            }
 
-            // Upload identity uProjection
+            // --- Upload uProjection ---
             if (GLint loc = glGetUniformLocation(shader.id, "uProjection"); loc >= 0)
-            {
-                glm::mat4 proj = glm::mat4(1.0f);
                 glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(proj));
-            }
 
             // --- Draw ---
             glBindVertexArray(mesh.vao);
@@ -101,6 +120,5 @@ namespace graphics::systems::render
 
         return {};
     }
-
 
 }

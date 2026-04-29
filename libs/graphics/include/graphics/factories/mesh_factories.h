@@ -32,6 +32,8 @@ namespace graphics::factories::mesh_factories
 	/// </returns>
 	std::expected<components::mesh_gl::MeshGL, std::string> create_rainbow_triangle_mesh();
 
+	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_cube_mesh();
+
 	/// <summary>
 	/// Creates a textured quad mesh using position + UV vertex data.
 	///

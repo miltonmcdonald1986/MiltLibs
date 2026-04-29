@@ -42,6 +42,77 @@ namespace graphics::factories::mesh_factories
 		return *meshResult;
 	}
 
+    std::expected<components::mesh_gl::MeshGL, std::string> create_textured_cube_mesh()
+    {
+        // Each face has its own quad with UVs
+        const float verts[] = {
+            // Front face (Z+)
+            -0.5f, -0.5f,  0.5f,  0.f, 0.f,
+             0.5f, -0.5f,  0.5f,  1.f, 0.f,
+             0.5f,  0.5f,  0.5f,  1.f, 1.f,
+            -0.5f, -0.5f,  0.5f,  0.f, 0.f,
+             0.5f,  0.5f,  0.5f,  1.f, 1.f,
+            -0.5f,  0.5f,  0.5f,  0.f, 1.f,
+
+            // Back face (Z-)
+             0.5f, -0.5f, -0.5f,  0.f, 0.f,
+            -0.5f, -0.5f, -0.5f,  1.f, 0.f,
+            -0.5f,  0.5f, -0.5f,  1.f, 1.f,
+             0.5f, -0.5f, -0.5f,  0.f, 0.f,
+            -0.5f,  0.5f, -0.5f,  1.f, 1.f,
+             0.5f,  0.5f, -0.5f,  0.f, 1.f,
+
+             // Left face (X-)
+             -0.5f, -0.5f, -0.5f,  0.f, 0.f,
+             -0.5f, -0.5f,  0.5f,  1.f, 0.f,
+             -0.5f,  0.5f,  0.5f,  1.f, 1.f,
+             -0.5f, -0.5f, -0.5f,  0.f, 0.f,
+             -0.5f,  0.5f,  0.5f,  1.f, 1.f,
+             -0.5f,  0.5f, -0.5f,  0.f, 1.f,
+
+             // Right face (X+)
+              0.5f, -0.5f,  0.5f,  0.f, 0.f,
+              0.5f, -0.5f, -0.5f,  1.f, 0.f,
+              0.5f,  0.5f, -0.5f,  1.f, 1.f,
+              0.5f, -0.5f,  0.5f,  0.f, 0.f,
+              0.5f,  0.5f, -0.5f,  1.f, 1.f,
+              0.5f,  0.5f,  0.5f,  0.f, 1.f,
+
+              // Top face (Y+)
+              -0.5f,  0.5f,  0.5f,  0.f, 0.f,
+               0.5f,  0.5f,  0.5f,  1.f, 0.f,
+               0.5f,  0.5f, -0.5f,  1.f, 1.f,
+              -0.5f,  0.5f,  0.5f,  0.f, 0.f,
+               0.5f,  0.5f, -0.5f,  1.f, 1.f,
+              -0.5f,  0.5f, -0.5f,  0.f, 1.f,
+
+              // Bottom face (Y-)
+              -0.5f, -0.5f, -0.5f,  0.f, 0.f,
+               0.5f, -0.5f, -0.5f,  1.f, 0.f,
+               0.5f, -0.5f,  0.5f,  1.f, 1.f,
+              -0.5f, -0.5f, -0.5f,  0.f, 0.f,
+               0.5f, -0.5f,  0.5f,  1.f, 1.f,
+              -0.5f, -0.5f,  0.5f,  0.f, 1.f,
+        };
+
+        VertexLayout layout;
+        layout.stride = sizeof(float) * 5;
+
+        layout.attributes.push_back({
+            /* index      */ 0,
+            /* components */ 3,
+            /* offset     */ 0
+            });
+
+        layout.attributes.push_back({
+            /* index      */ 1,
+            /* components */ 2,
+            /* offset     */ sizeof(float) * 3
+            });
+
+        return create_mesh_gl_layout(verts, layout, GL_TRIANGLES);
+    }
+
     std::expected<MeshGL, std::string> create_textured_quad_mesh()
     {
         // Interleaved vertex data: position (3 floats) + uv (2 floats)

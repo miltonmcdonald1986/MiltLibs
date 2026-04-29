@@ -6,6 +6,8 @@
 namespace graphics::platform::glfw_callbacks
 {
 
+	void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
+
 	/// <summary>
 	/// Callback invoked by GLFW to report an error.
 	/// </summary>
@@ -20,6 +22,12 @@ namespace graphics::platform::glfw_callbacks
 	/// <param name="w">New framebuffer width in pixels.</param>
 	/// <param name="h">New framebuffer height in pixels.</param>
 	void glfw_framebuffer_size_callback(GLFWwindow* pWindow, int w, int h);
+
+	void glfw_key_callback(GLFWwindow* win, int key, int scancode, int action, int mods);
+
+	void glfw_mouse_button_callback(GLFWwindow* win, int button, int action, int mods);
+
+	void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 }
 

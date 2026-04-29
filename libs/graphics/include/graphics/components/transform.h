@@ -10,6 +10,20 @@ namespace graphics::components::transform
     {
         bool dirty{ false };
 
+        Transform()
+            : position(glm::vec3(1.f))
+            , rotation(glm::vec3(1.f))
+            , scale(glm::vec3(1.f))
+        {
+        }
+
+        Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl)
+            : position(pos)
+            , rotation(rot)
+            , scale(scl)
+        {
+        }
+
         glm::vec3 get_position() const
         {
             return position;

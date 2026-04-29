@@ -6,6 +6,7 @@
 #include <graphics/app/lifecycle.h>
 #include <graphics/platform/platform.h>
 #include <graphics/systems/animation.h>
+#include <graphics/systems/camera.h>
 #include <graphics/systems/color.h>
 #include <graphics/systems/render.h>
 #include <graphics/systems/transform.h>
@@ -20,6 +21,7 @@ using graphics::platform::platform::swap_buffers;
 using graphics::systems::animation::update_flash;
 using graphics::systems::animation::update_shake;
 using graphics::systems::animation::update_shake_once;
+using graphics::systems::camera::update_camera_system;
 using graphics::systems::color::update_color_no_flash;
 using graphics::systems::render::render_system_update;
 using graphics::systems::transform::update_transform_dependents;
@@ -70,6 +72,7 @@ namespace graphics::app::app_loop
             update_transform_system(app.reg);
 
 			// ENGINE SYSTEMS (run-time effects)
+            update_camera_system(app.reg);
             update_color_no_flash(app.reg);
             update_flash(app.reg, app.delta_time);
 			update_shake(app.reg, app.delta_time);
@@ -77,6 +80,8 @@ namespace graphics::app::app_loop
 
             if (!render_system_update(app))
                 std::print("Render error: {}\n", render_system_update(app).error());
+
+            app.input.reset_frame_accumulators();
 
             end_imgui_frame();
             swap_buffers(pWin);

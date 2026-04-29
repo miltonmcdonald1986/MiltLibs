@@ -10,8 +10,12 @@
 #include <graphics/ui/inspector.h>
 
 using graphics::app::app::App;
+using graphics::platform::glfw_callbacks::glfw_cursor_pos_callback;
 using graphics::platform::glfw_callbacks::glfw_error_callback;
 using graphics::platform::glfw_callbacks::glfw_framebuffer_size_callback;
+using graphics::platform::glfw_callbacks::glfw_key_callback;
+using graphics::platform::glfw_callbacks::glfw_mouse_button_callback;
+using graphics::platform::glfw_callbacks::glfw_scroll_callback;
 using graphics::systems::ecs_observers::register_transform_observers;
 using graphics::ui::imgui_layer::init_imgui;
 using graphics::ui::inspector::register_inspectors;
@@ -102,7 +106,12 @@ namespace graphics::app::lifecycle
             return std::unexpected("Failed to create GLFW window");
 
         glfwSetWindowUserPointer(winState.pHandle, &app);
+     
+        glfwSetCursorPosCallback(winState.pHandle, glfw_cursor_pos_callback);
         glfwSetFramebufferSizeCallback(winState.pHandle, glfw_framebuffer_size_callback);
+        glfwSetKeyCallback(winState.pHandle, glfw_key_callback);
+        glfwSetMouseButtonCallback(winState.pHandle, glfw_mouse_button_callback);
+        glfwSetScrollCallback(winState.pHandle, glfw_scroll_callback);
 
         return {};
     }
