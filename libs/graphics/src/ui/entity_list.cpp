@@ -5,18 +5,22 @@
 #include <imgui.h>
 
 #include <graphics/components/tags.h>
+#include <graphics/engine/app_data.h>
 #include <graphics/scene/scene.h>
 
-using graphics::app::app::App;
 using graphics::components::tags::Selected;
+using graphics::engine::AppData;
 using graphics::scene::Scene;
 
 namespace graphics::ui::entity_list
 {
 
-    void draw_entity_list(App& app)
+    void draw_entity_list(AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 

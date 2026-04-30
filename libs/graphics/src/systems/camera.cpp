@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <graphics/platform/platform.h>
+#include <graphics/engine/app_data.h>
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/components/world_matrix.h>
 
@@ -10,6 +10,8 @@ using graphics::components::camera::ProjectionType;
 using graphics::components::camera::Camera;
 using graphics::components::transform::Transform;
 using graphics::components::world_matrix::WorldMatrix;
+using graphics::engine::AppData;
+using graphics::input::Key;
 using graphics::systems::ecs_observers::get_app;
 
 namespace graphics::systems::camera
@@ -63,7 +65,7 @@ namespace graphics::systems::camera
         rot.y -= dx * sensitivity; // yaw
         rot.x += dy * sensitivity; // pitch
 
-        float pitchLimit = glm::radians(89.0f);
+        constexpr float pitchLimit = glm::radians(89.0f);
         rot.x = glm::clamp(rot.x, -pitchLimit, pitchLimit);
 
         t.set_rotation(rot);
@@ -86,40 +88,72 @@ namespace graphics::systems::camera
 
     void update_camera_system(entt::registry& reg)
     {
+        AppData* p_data = get_app(reg);
+        if (!p_data)
+            return;
+
+        auto& input = p_data->input;
+        auto& keys = input.keys;
+        auto& mouse = input.mouse;
+
         auto view = reg.view<Camera, Transform>();
         for (auto [entity, camera, transform] : view.each())
         {
-            if (camera.primary)
+            if (!camera.primary)
+                continue;
+
+            // -----------------------------
+            // Mouse look (right mouse held)
+            // -----------------------------
+            if (mouse.right_is_down)
             {
-                auto& app = get_app(reg);
-                if (app.input.mouse.right_is_down)
-                    apply_mouse_look(transform, static_cast<float>(app.input.mouse.dx), static_cast<float>(-1.*app.input.mouse.dy), 0.002f);
-                if (app.input.scroll.y != 0.0f) {
-                    float zoomSpeed = 0.1f * (camera.type == ProjectionType::Orthographic ? camera.orthoHeight : camera.fov); // tune or scale based on FOV/orthoHeight
-                    zoom_camera(reg, entity, app.input.scroll.y * zoomSpeed);
-                    app.input.scroll.y = 0.0f; // consume
-                }
-
-                float speed = 5.0f * static_cast<float>(app.time.delta_time);
-
-                if (app.input.keys.is_down(GLFW_KEY_W))
-                    move_camera_forward(transform, reg, entity, speed);
-
-                if (app.input.keys.is_down(GLFW_KEY_S))
-                    move_camera_forward(transform, reg, entity, -speed);
-
-                if (app.input.keys.is_down(GLFW_KEY_D))
-                    move_camera_right(transform, reg, entity, speed);
-
-                if (app.input.keys.is_down(GLFW_KEY_A))
-                    move_camera_right(transform, reg, entity, -speed);
-
-                if (app.input.keys.is_down(GLFW_KEY_E))
-                    move_camera_up(transform, reg, entity, speed);
-
-                if (app.input.keys.is_down(GLFW_KEY_Q))
-                    move_camera_up(transform, reg, entity, -speed);
+                apply_mouse_look(
+                    transform,
+                    static_cast<float>(mouse.dx),
+                    static_cast<float>(-mouse.dy),
+                    0.002f
+                );
             }
+
+            // -----------------------------
+            // Scroll zoom
+            // -----------------------------
+            if (input.scroll.y != 0.0f)
+            {
+                float zoomSpeed = 0.1f * (
+                    camera.type == ProjectionType::Orthographic
+                    ? camera.orthoHeight
+                    : camera.fov
+                    );
+
+                zoom_camera(reg, entity, input.scroll.y * zoomSpeed);
+
+                // consume scroll
+                input.scroll.y = 0.0f;
+            }
+
+            // -----------------------------
+            // Movement (WASDQE)
+            // -----------------------------
+            float speed = 5.0f * static_cast<float>(p_data->time.delta_time);
+
+            if (keys.is_down(Key::W))
+                move_camera_forward(transform, reg, entity, speed);
+
+            if (keys.is_down(Key::S))
+                move_camera_forward(transform, reg, entity, -speed);
+
+            if (keys.is_down(Key::D))
+                move_camera_right(transform, reg, entity, speed);
+
+            if (keys.is_down(Key::A))
+                move_camera_right(transform, reg, entity, -speed);
+
+            if (keys.is_down(Key::E))
+                move_camera_up(transform, reg, entity, speed);
+
+            if (keys.is_down(Key::Q))
+                move_camera_up(transform, reg, entity, -speed);
         }
     }
 

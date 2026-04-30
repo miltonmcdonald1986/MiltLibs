@@ -3,13 +3,14 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/app/app.h>
+// Forward declarations
+namespace graphics::engine { struct AppData; }
 
 namespace graphics::systems::ecs_observers
 {
 
-	app::app::App& get_app(entt::registry& reg);
-	void register_transform_observers(app::app::App& app);
+	graphics::engine::AppData* get_app(const entt::registry& p_reg);
+	void register_transform_observers(graphics::engine::AppData* p_data);
 
 }
 

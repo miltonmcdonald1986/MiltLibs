@@ -8,7 +8,7 @@
 #include <graphics/platform/window_state.h>
 
 // Forward declarations
-namespace graphics::app::app { struct App; }
+namespace graphics::engine { struct AppData; }
 
 namespace graphics::platform::window
 {
@@ -17,7 +17,7 @@ namespace graphics::platform::window
 	{
 		~Window();
 
-		std::expected<void, std::string> init_glfw(app::app::App* p_app, int gl_version_major, int gl_version_minor, int gl_profile);
+		std::expected<void, std::string> init_glfw(engine::AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile);
 		void poll_events();
 		void swap_buffers();
 		void terminate_glfw();

@@ -1,19 +1,27 @@
-#include <graphics/app/app.h>
-
 #include <graphics/platform/glfw_callbacks.h>
-#include <graphics/platform/window.h>
 
 #include <print>
 
-using graphics::app::app::App;
+#include <graphics/engine/app_data.h>
+#include <graphics/input/glfw_key.h>
+#include <graphics/platform/window.h>
+
+using graphics::engine::AppData;
+using graphics::input::Key;
+using graphics::input::translate_glfw_key;
+using graphics::input::translate_glfw_mouse_button;
 using graphics::platform::window::Window;
 
 namespace graphics::platform::glfw_callbacks
 {
 
-    void glfw_cursor_pos_callback(GLFWwindow* win, double x, double y) {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(win));
-        auto& mouse = app->input.mouse;
+    void glfw_cursor_pos_callback(GLFWwindow* p_window, double x, double y) 
+    {
+        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        if (!p_data)
+            return;
+
+        auto& mouse = p_data->input.mouse;
 
         if (mouse.first_time) {
             mouse.x = x;
@@ -33,71 +41,100 @@ namespace graphics::platform::glfw_callbacks
         std::print("GLFW Error (code {}): {}\n", error_code, description);
     }
 
-    void glfw_framebuffer_size_callback(GLFWwindow* pWindow, int w, int h)
+    void glfw_framebuffer_size_callback(GLFWwindow* p_window, int w, int h)
     {
-        App* p_app = static_cast<App*>(glfwGetWindowUserPointer(pWindow));
-        if (!p_app)
+        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        if (!p_data)
             return;
 
-        Window* p_window = p_app->p_window;
-        if (!p_window)
+        Window* p_win = p_data->p_window;
+        if (!p_win)
             return;
 
-        p_window->window_state.width = w;
-        p_window->window_state.height = h;
+        p_win->window_state.width = w;
+        p_win->window_state.height = h;
         
         glViewport(0, 0, w, h);
     }
 
-    void glfw_key_callback(GLFWwindow* win, int key, int /*scancode*/, int action, int mods) 
+    void glfw_key_callback(GLFWwindow* p_window, int glfw_key, int /*scancode*/, int action, int mods)
     {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(win));
-        auto& keys = app->input.keys;
+        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        if (!p_data)
+            return;
 
-        if (key >= 0 && key <= GLFW_KEY_LAST) {
-            keys.down[key] = (action != GLFW_RELEASE);
-        }
+        auto& keys = p_data->input.keys;
 
-        // Update modifier state based on mods bitmask
-        keys.down[GLFW_KEY_LEFT_SHIFT] = (mods & GLFW_MOD_SHIFT) != 0;
-        keys.down[GLFW_KEY_RIGHT_SHIFT] = (mods & GLFW_MOD_SHIFT) != 0;
+        // 1. Translate GLFW key → engine Key enum
+        Key key = translate_glfw_key(glfw_key);
 
-        keys.down[GLFW_KEY_LEFT_CONTROL] = (mods & GLFW_MOD_CONTROL) != 0;
-        keys.down[GLFW_KEY_RIGHT_CONTROL] = (mods & GLFW_MOD_CONTROL) != 0;
+        // 2. Update key state (ignore Unknown)
+        if (key != Key::Unknown)
+            keys.set(key, action != GLFW_RELEASE);
 
-        keys.down[GLFW_KEY_LEFT_ALT] = (mods & GLFW_MOD_ALT) != 0;
-        keys.down[GLFW_KEY_RIGHT_ALT] = (mods & GLFW_MOD_ALT) != 0;
+        // 3. Update modifier keys from mods bitmask
+        keys.set(Key::LeftShift, (mods & GLFW_MOD_SHIFT) != 0);
+        keys.set(Key::RightShift, (mods & GLFW_MOD_SHIFT) != 0);
+
+        keys.set(Key::LeftControl, (mods & GLFW_MOD_CONTROL) != 0);
+        keys.set(Key::RightControl, (mods & GLFW_MOD_CONTROL) != 0);
+
+        keys.set(Key::LeftAlt, (mods & GLFW_MOD_ALT) != 0);
+        keys.set(Key::RightAlt, (mods & GLFW_MOD_ALT) != 0);
+
+        keys.set(Key::LeftSuper, (mods & GLFW_MOD_SUPER) != 0);
+        keys.set(Key::RightSuper, (mods & GLFW_MOD_SUPER) != 0);
     }
 
-    void glfw_mouse_button_callback(GLFWwindow* win, int button, int action, int mods) 
+
+    void glfw_mouse_button_callback(GLFWwindow* p_window, int button, int action, int mods)
     {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(win));
-        
-        auto& input = app->input;
+        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        if (!p_data)
+            return;
+
+        auto& input = p_data->input;
         auto& mouse = input.mouse;
         auto& keys = input.keys;
 
-        bool down = action == GLFW_PRESS;
-        if (button == GLFW_MOUSE_BUTTON_LEFT)   mouse.left_is_down = down;
-        if (button == GLFW_MOUSE_BUTTON_RIGHT)  mouse.right_is_down = down;
-        if (button == GLFW_MOUSE_BUTTON_MIDDLE) mouse.middle_is_down = down;
+        bool is_down = (action == GLFW_PRESS);
 
-        // Update modifier state based on mods bitmask
-        keys.down[GLFW_KEY_LEFT_SHIFT] = (mods & GLFW_MOD_SHIFT) != 0;
-        keys.down[GLFW_KEY_RIGHT_SHIFT] = (mods & GLFW_MOD_SHIFT) != 0;
+        // 1. Update mouse button state
+        switch (button)
+        {
+        case GLFW_MOUSE_BUTTON_LEFT:   mouse.left_is_down = is_down; break;
+        case GLFW_MOUSE_BUTTON_RIGHT:  mouse.right_is_down = is_down; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: mouse.middle_is_down = is_down; break;
+        }
 
-        keys.down[GLFW_KEY_LEFT_CONTROL] = (mods & GLFW_MOD_CONTROL) != 0;
-        keys.down[GLFW_KEY_RIGHT_CONTROL] = (mods & GLFW_MOD_CONTROL) != 0;
+        // 2. Update mouse buttons in KeyState too (optional but recommended)
+        Key mouse_key = translate_glfw_mouse_button(button);
+        if (mouse_key != Key::Unknown)
+            keys.set(mouse_key, is_down);
 
-        keys.down[GLFW_KEY_LEFT_ALT] = (mods & GLFW_MOD_ALT) != 0;
-        keys.down[GLFW_KEY_RIGHT_ALT] = (mods & GLFW_MOD_ALT) != 0;
+        // 3. Update modifier keys from mods bitmask
+        keys.set(Key::LeftShift, (mods & GLFW_MOD_SHIFT) != 0);
+        keys.set(Key::RightShift, (mods & GLFW_MOD_SHIFT) != 0);
+
+        keys.set(Key::LeftControl, (mods & GLFW_MOD_CONTROL) != 0);
+        keys.set(Key::RightControl, (mods & GLFW_MOD_CONTROL) != 0);
+
+        keys.set(Key::LeftAlt, (mods & GLFW_MOD_ALT) != 0);
+        keys.set(Key::RightAlt, (mods & GLFW_MOD_ALT) != 0);
+
+        keys.set(Key::LeftSuper, (mods & GLFW_MOD_SUPER) != 0);
+        keys.set(Key::RightSuper, (mods & GLFW_MOD_SUPER) != 0);
     }
 
-    void glfw_scroll_callback(GLFWwindow* win, double xoff, double yoff) 
+
+    void glfw_scroll_callback(GLFWwindow* p_window, double xoff, double yoff) 
     {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(win));
-        app->input.scroll.x += static_cast<float>(xoff);
-        app->input.scroll.y += static_cast<float>(yoff);
+        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        if (!p_data)
+            return;
+
+        p_data->input.scroll.x += static_cast<float>(xoff);
+        p_data->input.scroll.y += static_cast<float>(yoff);
     }
 
 } // namespace graphics::glfw_callbacks

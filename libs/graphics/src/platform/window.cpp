@@ -1,9 +1,8 @@
 #include <graphics/platform/window.h>
 
-#include <graphics/app/app.h>
 #include <graphics/platform/glfw_callbacks.h>
 
-using graphics::app::app::App;
+using graphics::engine::AppData;
 using graphics::platform::glfw_callbacks::glfw_cursor_pos_callback;
 using graphics::platform::glfw_callbacks::glfw_error_callback;
 using graphics::platform::glfw_callbacks::glfw_framebuffer_size_callback;
@@ -19,7 +18,7 @@ namespace graphics::platform::window
         terminate_glfw();
     }
 
-    std::expected<void, std::string> Window::init_glfw(App* p_app, int gl_version_major, int gl_version_minor, int gl_profile)
+    std::expected<void, std::string> Window::init_glfw(AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile)
     {
         glfwSetErrorCallback(glfw_error_callback);
 

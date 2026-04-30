@@ -1,5 +1,3 @@
-#include <graphics/app/app.h>
-#include <graphics/app/app_loop.h>
 #include <graphics/components/camera.h>
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
@@ -10,6 +8,8 @@
 #include <graphics/components/tags.h>
 #include <graphics/components/texture.h>
 #include <graphics/components/transform.h>
+#include <graphics/engine/app_data.h>
+#include <graphics/engine/engine.h>
 #include <graphics/factories/mesh_factories.h>
 #include <graphics/factories/texture_factories.h>
 #include <graphics/factories/shader_factories.h>
@@ -22,8 +22,6 @@
 #include <graphics/ui/inspector.h>
 #include <graphics/ui/widgets.h>
 
-using graphics::app::app::App;
-using graphics::app::app_loop::run_app;
 using graphics::components::camera::Camera;
 using graphics::components::camera::ProjectionType;
 using graphics::components::color::Color;
@@ -36,6 +34,8 @@ using graphics::components::shake::ShakeOnce;
 using graphics::components::tags::Shakeable;
 using graphics::components::texture::Texture;
 using graphics::components::transform::Transform;
+using graphics::engine::AppData;
+using graphics::engine::run;
 using graphics::factories::mesh_factories::create_textured_cube_mesh;
 using graphics::factories::mesh_factories::create_textured_quad_mesh;
 using graphics::factories::mesh_factories::create_textured_triangle_mesh;
@@ -63,13 +63,16 @@ using graphics::ui::widgets::draw_render_settings_widget;
 
 entt::entity camera;
 
-std::expected<void, std::string> init(App& app)
+std::expected<void, std::string> init(AppData* p_data)
 {
-    Scene* p_scene = app.p_active_scene;
+    if (!p_data)
+        return std::unexpected("No app data found");
+
+    Scene* p_scene = p_data->p_active_scene;
     if (!p_scene)
         return std::unexpected("No active scene found");
 
-    Window* p_window = app.p_window;
+    Window* p_window = p_data->p_window;
     if (!p_window)
         return std::unexpected("No window found");
 
@@ -99,23 +102,27 @@ std::expected<void, std::string> init(App& app)
         .fov = glm::radians(45.f),
         .nearPlane = 0.1f,
         .farPlane = 1000.0f,
-        .aspect = p_window->window_state.width / float(app.p_window->window_state.height),
+        .aspect = p_window->window_state.width / float(p_data->p_window->window_state.height),
         .primary = true
         });
 
     return {};
 }
 
-std::expected<void, std::string> update(App& app)
+std::expected<void, std::string> update(AppData* p_data)
 {
+    if (!p_data)
+        return std::unexpected("No app data found");
+
     // Optional UI
-    draw_entity_list(app);
-    draw_inspector(app);
+    draw_entity_list(p_data);
+    draw_inspector(p_data);
 
     return {};
 }
 
 int main(void)
 {
-    return run_app(init, update);
+    auto result = run(init, update);
+    return result.has_value() ? 0 : 1;
 }

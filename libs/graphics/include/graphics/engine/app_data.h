@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_APP_APP_H
-#define GRAPHICS_APP_APP_H
+#ifndef GRAPHICS_ENGINE_APP_DATA_H
+#define GRAPHICS_ENGINE_APP_DATA_H
 
 #include <graphics/app/input_state.h>
 #include <graphics/platform/time.h>
@@ -9,12 +9,12 @@ namespace graphics::platform::window { struct Window; }
 namespace graphics::rendering::renderer { struct Renderer; }
 namespace graphics::scene { struct Scene; }
 
-namespace graphics::app::app
+namespace graphics::engine
 {
 
-	struct App
+	struct AppData
 	{
-		input_state::InputState input{};
+		app::input_state::InputState input{};
 		platform::time::Time time{};
 		platform::window::Window* p_window{ nullptr };
 		rendering::renderer::Renderer* p_renderer{ nullptr };
@@ -23,4 +23,4 @@ namespace graphics::app::app
 
 }
 
-#endif // GRAPHICS_APP_APP_H
+#endif // GRAPHICS_ENGINE_APP_DATA_H

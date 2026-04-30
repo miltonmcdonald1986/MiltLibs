@@ -4,7 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-using graphics::app::app::App;
+#include <graphics/platform/gl_includes.h>
 
 namespace graphics::ui::imgui_layer
 {
@@ -56,5 +56,11 @@ namespace graphics::ui::imgui_layer
         ImGui_ImplOpenGL3_Init("#version 330 core");
     }
 
+    void terminate_imgui()
+    {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
 
 } // namespace graphics::ui::imgui_layer

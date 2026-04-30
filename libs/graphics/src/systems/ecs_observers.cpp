@@ -2,28 +2,30 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/app/app.h>
 #include <graphics/components/world_matrix.h>
+#include <graphics/engine/app_data.h>
 #include <graphics/scene/scene.h>
 
-using graphics::app::app::App;
 using graphics::components::transform::Transform;
 using graphics::components::world_matrix::WorldMatrix;
+using graphics::engine::AppData;
 using graphics::scene::Scene;
 
 namespace graphics::systems::ecs_observers
 {
 
-    App& get_app(entt::registry& reg)
+    AppData* get_app(const entt::registry& reg)
     {
-        return *reg.ctx().get<App*>();
+        return reg.ctx().get<AppData*>();
     }
 
     void on_transform_constructed(entt::registry& reg, entt::entity e)
     {
-        App& app = get_app(reg);
-        
-        Scene* scene = app.p_active_scene;
+        AppData* p_data = get_app(reg);
+        if (!p_data)
+            return;
+
+        Scene* scene = p_data->p_active_scene;
         if (!scene)
             return;
 
@@ -42,9 +44,11 @@ namespace graphics::systems::ecs_observers
 
     void on_transform_updated(entt::registry& reg, entt::entity e) 
     {
-        App& app = get_app(reg);
-        
-        Scene* scene = app.p_active_scene;
+        AppData* p_data = get_app(reg);
+        if (!p_data)
+            return;
+
+        Scene* scene = p_data->p_active_scene;
         if (!scene)
             return;
 
@@ -58,24 +62,27 @@ namespace graphics::systems::ecs_observers
 
     void on_transform_destroyed(entt::registry& reg, entt::entity e) 
     {
-        App& app = get_app(reg);
+        AppData* p_data = get_app(reg);
 
-        Scene* scene = app.p_active_scene;
+        Scene* scene = p_data->p_active_scene;
         if (!scene)
             return;
 
         scene->initial_transforms.erase(e);
     }
 
-    void register_transform_observers(App& app) 
+    void register_transform_observers(AppData* p_data) 
     {
         // TODO: apply this to all scenes once we have a mechanism for more than one scene???
 
-        Scene* scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* scene = p_data->p_active_scene;
         if (!scene)
             return;
 
-        scene->reg.ctx().emplace<App*>(&app);
+        scene->reg.ctx().emplace<AppData*>(p_data);
         
         scene->reg.on_construct<Transform>().connect<&on_transform_constructed>();
         scene->reg.on_update<Transform>().connect<&on_transform_updated>();

@@ -1,6 +1,9 @@
 #ifndef GRAPHICS_APP_INPUT_STATE_H
 #define GRAPHICS_APP_INPUT_STATE_H
 
+#include <array>
+
+#include <graphics/input/key.h>
 #include <graphics/platform/gl_includes.h>
 
 namespace graphics::app::input_state
@@ -23,28 +26,33 @@ namespace graphics::app::input_state
 		float y = 0.0f;
 	};
 
-	struct KeyState 
+	struct KeyState
 	{
-		bool down[GLFW_KEY_LAST + 1] = {};
+		std::array<bool, static_cast<size_t>(input::Key::COUNT)> down{};
 
-		bool is_down(int key) const 
+		bool is_down(input::Key key) const
 		{
-			return down[key];
+			return down[static_cast<size_t>(key)];
 		}
 
-		bool shift_is_down() const 
+		void set(input::Key key, bool value)
 		{
-			return down[GLFW_KEY_LEFT_SHIFT] || down[GLFW_KEY_RIGHT_SHIFT];
+			down[static_cast<size_t>(key)] = value;
 		}
 
-		bool ctrl_is_down() const 
+		bool shift_is_down() const
 		{
-			return down[GLFW_KEY_LEFT_CONTROL] || down[GLFW_KEY_RIGHT_CONTROL];
+			return is_down(input::Key::LeftShift) || is_down(input::Key::RightShift);
 		}
 
-		bool alt_is_down() const 
+		bool ctrl_is_down() const
 		{
-			return down[GLFW_KEY_LEFT_ALT] || down[GLFW_KEY_RIGHT_ALT];
+			return is_down(input::Key::LeftControl) || is_down(input::Key::RightControl);
+		}
+
+		bool alt_is_down() const
+		{
+			return is_down(input::Key::LeftAlt) || is_down(input::Key::RightAlt);
 		}
 	};
 

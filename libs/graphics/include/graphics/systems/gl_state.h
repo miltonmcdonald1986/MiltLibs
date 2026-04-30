@@ -1,6 +1,8 @@
 #ifndef GRAPHICS_SYSTEMS_GL_STATE_H
 #define GRAPHICS_SYSTEMS_GL_STATE_H
 
+#include <graphics/platform/gl_includes.h>
+
 namespace graphics::systems::gl_state
 {
 

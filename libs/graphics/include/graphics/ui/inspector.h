@@ -5,7 +5,7 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/app/app.h>
+namespace graphics::engine { struct AppData; }
 
 namespace graphics::ui::inspector
 {
@@ -17,7 +17,7 @@ namespace graphics::ui::inspector
 	void register_inspectors();
 
 	// Draw the inspector panel for the currently selected entity
-	void draw_inspector(app::app::App& app);
+	void draw_inspector(engine::AppData* p_data);
 
 }
 

@@ -4,7 +4,6 @@
 #include <expected>
 #include <string>
 
-#include <graphics/app/gl_config.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/gl_state.h>
 

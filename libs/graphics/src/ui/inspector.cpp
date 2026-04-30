@@ -4,16 +4,15 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/app/app.h>
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/tags.h>
 #include <graphics/components/shake.h>
 #include <graphics/components/transform.h>
+#include <graphics/engine/app_data.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/ecs_observers.h>
 
-using graphics::app::app::App;
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 using graphics::components::shake::Shake;
@@ -21,6 +20,7 @@ using graphics::components::shake::ShakeOnce;
 using graphics::components::tags::Selected;
 using graphics::components::tags::Shakeable;
 using graphics::components::transform::Transform;
+using graphics::engine::AppData;
 using graphics::scene::Scene;
 using graphics::systems::ecs_observers::get_app;
 using graphics::ui::inspector::InspectorFn;
@@ -195,9 +195,9 @@ namespace
         if (!transform)
             return;
 
-        App& app = get_app(reg);
+        AppData* p_data = get_app(reg);
 
-        Scene* p_scene = app.p_active_scene;
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -306,9 +306,12 @@ namespace graphics::ui::inspector
     // ------------------------------------------------------------
     // Draw Inspector Panel
     // ------------------------------------------------------------
-    void draw_inspector(App& app)
+    void draw_inspector(AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 

@@ -9,10 +9,10 @@
 #include <graphics/components/shake.h>
 #include <graphics/components/tags.h>
 #include <graphics/components/transform.h>
+#include <graphics/engine/app_data.h>
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 
-using graphics::app::app::App;
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 using graphics::components::shake::Shake;
@@ -20,15 +20,19 @@ using graphics::components::tags::Selected;
 using graphics::components::tags::Shakeable;
 using graphics::components::shake::ShakeOnce;
 using graphics::components::transform::Transform;
+using graphics::engine::AppData;
 using graphics::rendering::renderer::Renderer;
 using graphics::scene::Scene;
 
 namespace graphics::ui::widgets
 {
 
-    void draw_flash_widget(App& app)
+    void draw_flash_widget(engine::AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -46,9 +50,12 @@ namespace graphics::ui::widgets
 		ImGui::End();
     }
 
-    void draw_per_entity_color_widget(App& app)
+    void draw_per_entity_color_widget(engine::AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -64,9 +71,12 @@ namespace graphics::ui::widgets
         ImGui::End();
     }
 
-	void draw_render_settings_widget(App& app)
+	void draw_render_settings_widget(engine::AppData* p_data)
 	{
-        Renderer* p_renderer = app.p_renderer;
+        if (!p_data)
+            return;
+
+        Renderer* p_renderer = p_data->p_renderer;
         if (!p_renderer)
             return;
 
@@ -77,9 +87,12 @@ namespace graphics::ui::widgets
         ImGui::End();
 	}
 
-    void draw_shake_widget(App& app)
+    void draw_shake_widget(engine::AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        if (!p_data)
+            return;
+
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -107,9 +120,9 @@ namespace graphics::ui::widgets
         ImGui::End();
     }
 
-    void draw_shake_once_widget(App& app)
+    void draw_shake_once_widget(engine::AppData* p_data)
     {
-        Scene* p_scene = app.p_active_scene;
+        Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
