@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_FLASH_H
 #define GRAPHICS_COMPONENTS_FLASH_H
 
-namespace graphics::components::flash
+namespace graphics::components
 {
 
     struct Flash 

@@ -1,18 +1,14 @@
 #ifndef GRAPHICS_COMPONENTS_COLOR_H
 #define GRAPHICS_COMPONENTS_COLOR_H
 
-namespace graphics::components::color
+#include <glm/glm.hpp>
+
+namespace graphics::components
 {
 
     struct Color 
     {
-        float base[4];   // original color
-        float rgba[4];   // final color used for rendering
-
-        Color(float r, float g, float b, float a = 1.0f)
-            : base{ r, g, b, a }
-            , rgba{ r, g, b, a }
-        {}
+        glm::vec4 rgba{ glm::vec4(1.f) };
     };
 
 }

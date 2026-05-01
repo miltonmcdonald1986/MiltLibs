@@ -4,6 +4,8 @@
 
 #include <entt/entt.hpp>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/tags.h>
@@ -13,8 +15,6 @@
 #include <graphics/scene/scene.h>
 #include <graphics/systems/ecs_observers.h>
 
-using graphics::components::color::Color;
-using graphics::components::flash::Flash;
 using graphics::components::shake::Shake;
 using graphics::components::shake::ShakeOnce;
 using graphics::components::tags::Selected;
@@ -39,17 +39,21 @@ namespace
 
     void draw_color_inspector(entt::registry& reg, entt::entity e)
     {
+        using graphics::components::Color;
+
         if (Color* color = reg.try_get<Color>(e))
         {
             if (ImGui::CollapsingHeader("Color"))
             {
-                ImGui::ColorEdit4("Base", color->base);
+                ImGui::ColorEdit4("Base", glm::value_ptr(color->rgba));
             }
         }
     }
 
     void draw_flash_inspector(entt::registry& reg, entt::entity e)
     {
+        using graphics::components::Flash;
+
         if (Flash* flash = reg.try_get<Flash>(e))
         {
             if (ImGui::CollapsingHeader("Flash"))

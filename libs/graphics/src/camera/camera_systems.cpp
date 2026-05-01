@@ -5,6 +5,7 @@
 #include <graphics/camera/camera.h>
 #include <graphics/camera/camera_controller.h>
 #include <graphics/camera/camera_controller_state.h>
+#include <graphics/camera/camera_matrices.h>
 #include <graphics/camera/orthographic_camera.h>
 #include <graphics/camera/perspective_camera.h>
 #include <graphics/engine/app_data.h>
@@ -12,10 +13,9 @@
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/components/transform.h>
 #include <graphics/components/world_matrix.h>
+#include <graphics/platform/window.h>
+#include <graphics/utils/math_utils.h>
 
-using graphics::camera::Camera;
-using graphics::camera::CameraController;
-using graphics::camera::CameraControllerState;
 using graphics::camera::OrthographicCamera;
 using graphics::camera::PerspectiveCamera;
 using graphics::components::transform::Transform;
@@ -67,11 +67,11 @@ namespace
 
     void zoom_scroll(entt::registry& reg, entt::entity cam_ent, float scroll, float speed)
     {
-        if (Camera* p_camera = reg.try_get<Camera>(cam_ent))
+        if (graphics::camera::Camera* p_camera = reg.try_get<graphics::camera::Camera>(cam_ent))
         {
             switch (p_camera->type)
             {
-            case Camera::ProjectionType::Orthographic:
+            case graphics::camera::ProjectionType::Orthographic:
             {
                 if (OrthographicCamera* p_ortho = reg.try_get<OrthographicCamera>(cam_ent))
                 {
@@ -81,7 +81,7 @@ namespace
                 }
                 break;
             }
-            case Camera::ProjectionType::Perspective:
+            case graphics::camera::ProjectionType::Perspective:
             {
                 if (PerspectiveCamera* p_persp = reg.try_get<PerspectiveCamera>(cam_ent))
                 {
@@ -106,22 +106,22 @@ namespace graphics::camera
         {
             switch (p_camera->type)
             {
-            case Camera::ProjectionType::Orthographic:
+            case ProjectionType::Orthographic:
             {
                 if (const OrthographicCamera* p_ortho = reg.try_get<OrthographicCamera>(cam_ent))
                 {
                     float halfH = p_ortho->height * 0.5f;
                     float halfW = halfH * aspect;
 
-                    return glm::ortho(-halfW, halfW, -halfH, halfH, p_ortho->clip_planes.near, p_ortho->clip_planes.far);
+                    return glm::ortho(-halfW, halfW, -halfH, halfH, p_ortho->clip_planes.z_near, p_ortho->clip_planes.z_far);
                 }
 
                 break;
             }
-            case Camera::ProjectionType::Perspective:
+            case ProjectionType::Perspective:
             {
                 if (const PerspectiveCamera* p_persp = reg.try_get<PerspectiveCamera>(cam_ent))
-                    return glm::perspective(glm::radians(p_persp->fov), aspect, p_persp->clip_planes.near, p_persp->clip_planes.far);
+                    return glm::perspective(glm::radians(p_persp->fov), aspect, p_persp->clip_planes.z_near, p_persp->clip_planes.z_far);
          
                 break;
             }
@@ -133,8 +133,12 @@ namespace graphics::camera
 
     void update_camera_system(entt::registry& reg, float dt)
     {
-        auto view = reg.view<Camera, CameraController, CameraControllerState, Transform>();
-        for (auto [cam_ent, camera, camera_controller, camera_controller_state, transform] : view.each())
+        AppData* p_data = get_app(reg);
+        if (!p_data)
+            return;
+
+        auto view = reg.view<Camera, CameraController, CameraControllerState, CameraMatrices, Transform>();
+        for (auto [cam_ent, camera, camera_controller, camera_controller_state, camera_matrices, transform] : view.each())
         {
             if (camera_controller.enable_look && camera_controller_state.look_active)
                 look(transform, camera_controller_state.look_delta.x, -1.f * camera_controller_state.look_delta.y, camera_controller.look_sensitivity, camera_controller.pitch_limit);
@@ -147,6 +151,12 @@ namespace graphics::camera
                 glm::vec3 total_movement = camera_controller_state.move_delta * camera_controller.move_speed * dt;
                 move(transform, reg, cam_ent, total_movement);
             }
+
+            auto& camWM = reg.get<WorldMatrix>(cam_ent);
+            auto worldNoScale = utils::remove_scale_from_matrix(camWM.value);
+            
+            camera_matrices.view = glm::inverse(worldNoScale);
+            camera_matrices.projection = compute_projection(reg, cam_ent, p_data->p_window->window_state.aspect());
         }
     }
 

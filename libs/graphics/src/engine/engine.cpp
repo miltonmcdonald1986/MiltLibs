@@ -7,7 +7,6 @@
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/animation.h>
-#include <graphics/systems/color.h>
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/systems/transform.h>
 #include <graphics/ui/imgui_layer.h>
@@ -23,7 +22,6 @@ using graphics::systems::animation::update_flash;
 using graphics::systems::animation::update_shake;
 using graphics::systems::animation::update_shake_base_world;
 using graphics::systems::animation::update_shake_once;
-using graphics::systems::color::update_color_no_flash;
 using graphics::systems::ecs_observers::register_transform_observers;
 using graphics::systems::transform::update_transform_system;
 using graphics::ui::imgui_layer::begin_imgui_frame;
@@ -81,7 +79,7 @@ namespace
         return {};
     }
 
-    std::expected<void, std::string> loop(AppData& data, graphics::engine::GraphicsUpdateFn update_fn)
+    std::expected<void, std::string> loop(AppData& data, graphics::engine::UpdateFn update_fn)
     {
         Window* p_window = data.p_window;
         if (!p_window)
@@ -113,12 +111,11 @@ namespace
 
             // ENGINE SYSTEMS (run-time effects)
             update_camera_system(p_scene->reg, data.time.dt);
-            update_color_no_flash(p_scene->reg);
             update_flash(p_scene->reg, data.time.dt);
             update_shake(p_scene->reg, data.time.dt);
             update_shake_once(p_scene->reg, data.time.dt);
 
-            if (auto result = p_renderer->update(p_scene, p_window->window_state.aspect()); !result)
+            if (auto result = p_renderer->update(p_scene); !result)
                 return std::unexpected(std::format("Render error: {}", result.error()));
 
             data.input.reset_frame_accumulators();
@@ -132,7 +129,7 @@ namespace
 namespace graphics::engine
 {
 	
-    std::expected<void, std::string> run(GraphicsInitFn init_fn, GraphicsUpdateFn update_fn)
+    std::expected<void, std::string> run(InitFn init_fn, UpdateFn update_fn)
     {
         AppData data{};
 

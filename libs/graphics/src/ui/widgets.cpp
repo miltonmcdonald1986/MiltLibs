@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <imgui.h>
 
 #include <graphics/components/color.h>
@@ -13,8 +15,6 @@
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 
-using graphics::components::color::Color;
-using graphics::components::flash::Flash;
 using graphics::components::shake::Shake;
 using graphics::components::tags::Selected;
 using graphics::components::tags::Shakeable;
@@ -40,10 +40,10 @@ namespace graphics::ui::widgets
 
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Flash Settings");
-        auto view = reg.view<Flash>();
-        for (auto [entity, flash] : view.each()) {
+        auto view = reg.view<components::Flash>();
+        for (auto [entity, flash_component] : view.each()) {
             std::string label = "entity " + std::to_string((uint32_t)entity);
-            ImGui::SliderFloat(label.c_str(), &flash.speed, 0.1f, 10.0f);
+            ImGui::SliderFloat(label.c_str(), &flash_component.speed, 0.1f, 10.0f);
         }
 		ImGui::End();
     }
@@ -61,10 +61,10 @@ namespace graphics::ui::widgets
 
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Entity Colors");
-        auto view = reg.view<Color>();
-        for (auto [entity, color] : view.each()) {
+        auto view = reg.view<components::Color>();
+        for (auto [entity, color_component] : view.each()) {
             std::string label = "entity " + std::to_string((uint32_t)entity);
-            ImGui::ColorEdit4(label.c_str(), color.base);
+            ImGui::ColorEdit4(label.c_str(), glm::value_ptr(color_component.rgba));
         }
         ImGui::End();
     }

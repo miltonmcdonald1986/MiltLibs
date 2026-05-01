@@ -4,7 +4,7 @@
 #include <graphics/factories/mesh_factories.h>
 #include <graphics/factories/shader_factories.h>
 
-using graphics::components::color::Color;
+using graphics::components::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::factories::mesh_factories::create_triangle_mesh;

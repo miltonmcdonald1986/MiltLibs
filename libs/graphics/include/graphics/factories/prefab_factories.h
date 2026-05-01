@@ -29,7 +29,7 @@ namespace graphics::factories::prefab_factories
 	///   • entt::entity on success
 	///   • std::string error message on failure
 	/// </returns>
-	std::expected<entt::entity, std::string> create_solid_color_triangle_ent(entt::registry& reg, const components::color::Color& color);
+	std::expected<entt::entity, std::string> create_solid_color_triangle_ent(entt::registry& reg, const components::Color& color);
 
 
 	/// <summary>

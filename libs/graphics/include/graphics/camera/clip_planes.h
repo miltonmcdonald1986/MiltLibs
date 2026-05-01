@@ -6,8 +6,8 @@ namespace graphics::camera
 
 	struct ClipPlanes
 	{
-		float near = 0.1f;
-		float far = 1000.f;
+		float z_near = 0.1f;
+		float z_far = 1000.f;
 	};
 
 }

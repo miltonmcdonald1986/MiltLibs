@@ -6,7 +6,8 @@
 namespace graphics::components::mesh_gl
 {
 
-    struct MeshGL {
+    struct MeshGL 
+    {
         GLenum primitive = GL_TRIANGLES;
         GLuint vao = 0;
         GLuint vbo = 0;

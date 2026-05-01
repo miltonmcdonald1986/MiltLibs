@@ -8,8 +8,6 @@
 #include <graphics/components/transform.h>
 #include <graphics/components/world_matrix.h>
 
-using graphics::components::color::Color;
-using graphics::components::flash::Flash;
 using graphics::components::shake::Shake;
 using graphics::components::shake::ShakeOnce;
 using graphics::components::transform::Transform;
@@ -20,18 +18,9 @@ namespace graphics::systems::animation
 
     void update_flash(entt::registry& reg, float dt)
     {
-        auto view = reg.view<Color, Flash>();
-        for (auto [entity, color, flash] : view.each())
-        {
+        auto view = reg.view<components::Flash>();
+        for (auto [e, flash] : view.each())
             flash.t += dt * flash.speed;
-
-            float intensity = std::sin(flash.t) * 0.5f + 0.5f;
-
-            color.rgba[0] = color.base[0] * intensity;
-            color.rgba[1] = color.base[1] * intensity;
-            color.rgba[2] = color.base[2] * intensity;
-            color.rgba[3] = color.base[3];
-        }
     }
 
     void update_shake(entt::registry& reg, float dt)

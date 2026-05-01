@@ -1,6 +1,8 @@
 #include <graphics/camera/camera.h>
 #include <graphics/camera/camera_controller.h>
 #include <graphics/camera/camera_controller_state.h>
+#include <graphics/camera/camera_factory.h>
+#include <graphics/camera/camera_matrices.h>
 #include <graphics/camera/orthographic_camera.h>
 #include <graphics/camera/perspective_camera.h>
 #include <graphics/components/color.h>
@@ -28,10 +30,9 @@
 using graphics::camera::Camera;
 using graphics::camera::CameraController;
 using graphics::camera::CameraControllerState;
+using graphics::camera::CameraMatrices;
 using graphics::camera::OrthographicCamera;
 using graphics::camera::PerspectiveCamera;
-using graphics::components::color::Color;
-using graphics::components::flash::Flash;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::parent::Parent;
 using graphics::components::shader::Shader;
@@ -60,8 +61,6 @@ using graphics::ui::widgets::draw_shake_once_widget;
 using graphics::ui::widgets::draw_per_entity_color_widget;
 using graphics::ui::widgets::draw_render_settings_widget;
 
-entt::entity camera;
-
 std::expected<void, std::string> init(AppData* p_data)
 {
     if (!p_data)
@@ -84,23 +83,19 @@ std::expected<void, std::string> init(AppData* p_data)
             glm::vec3(0, 0, 0),
             glm::vec3(1, 1, 1)
         );
+        reg.emplace<graphics::components::Color>(e, graphics::components::Color{});
+        reg.emplace<graphics::components::Flash>(e, graphics::components::Flash{});
         reg.emplace<MeshGL>(e, *create_textured_cube_mesh());
-        reg.emplace<Shader>(e, *create_textured_mvp_shader());
+        reg.emplace<Shader>(e, *create_textured_color_mvp_shader());
         if (auto tex_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
             reg.emplace<Texture>(e, *tex_result);
         else
             return std::unexpected("Failed to load texture");
     }
 
-    camera = reg.create();
-
-    reg.emplace<Transform>(camera, Transform(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
-
-    reg.emplace<Camera>(camera, Camera{ Camera::ProjectionType::Perspective });
-    reg.emplace<CameraController>(camera, CameraController{});
-    reg.emplace<CameraControllerState>(camera, CameraControllerState{});
-    reg.emplace<OrthographicCamera>(camera, OrthographicCamera{});
-    reg.emplace<PerspectiveCamera>(camera, PerspectiveCamera{});
+    entt::entity camera = reg.create();
+    graphics::camera::CameraConfig camera_config{};
+    graphics::camera::add_camera(reg, camera, camera_config);
     
     return {};
 }

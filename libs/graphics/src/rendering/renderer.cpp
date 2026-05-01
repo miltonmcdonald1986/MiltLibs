@@ -3,17 +3,18 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <graphics/camera/camera.h>
+#include <graphics/camera/camera_matrices.h>
 #include <graphics/camera/camera_systems.h>
 #include <graphics/components/color.h>
+#include <graphics/components/flash.h>
 #include <graphics/components/mesh_gl.h>
 #include <graphics/components/shader.h>
 #include <graphics/components/texture.h>
 #include <graphics/components/world_matrix.h>
 #include <graphics/platform/gl_includes.h>
+#include <graphics/utils/math_utils.h>
 
-using graphics::camera::Camera;
 using graphics::camera::compute_projection;
-using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::components::texture::Texture;
@@ -22,6 +23,15 @@ using graphics::scene::Scene;
 
 namespace graphics::rendering::renderer
 {
+
+    glm::vec4 compute_final_color(const components::Color& color, const components::Flash* flash)
+    {
+        if (!flash)
+            return glm::make_vec4(color.rgba);
+
+        float intensity = std::sin(flash->t) * 0.5f + 0.5f;
+        return glm::vec4(color.rgba[0] * intensity, color.rgba[1] * intensity, color.rgba[2] * intensity, color.rgba[3]);
+    }
 
     std::expected<void, std::string> Renderer::init(int framebuffer_width, int framebuffer_height)
     {
@@ -45,7 +55,7 @@ namespace graphics::rendering::renderer
         return {};
     }
 
-    std::expected<void, std::string> Renderer::update(Scene* p_scene, float aspect)
+    std::expected<void, std::string> Renderer::update(Scene* p_scene)
     {
         if (!p_scene)
             return std::unexpected("No active scene found");
@@ -66,22 +76,10 @@ namespace graphics::rendering::renderer
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        // ---------------------------------------------------------
-        // 1. Find the active camera
-        // ---------------------------------------------------------
-        entt::entity cam_ent = reg.view<Camera, WorldMatrix>().front();
-        if (cam_ent == entt::null) 
-        {
-            return std::unexpected("No active camera found");
-        }
-
-        auto& camWM = reg.get<WorldMatrix>(cam_ent);
-
-        // ---------------------------------------------------------
-        // 2. Compute view + projection
-        // ---------------------------------------------------------
-        glm::mat4 view = glm::inverse(camWM.value);
-        glm::mat4 proj = compute_projection(reg, cam_ent, aspect);
+        entt::entity camera = reg.view<camera::Camera>().front();
+        camera::CameraMatrices* p_camera_matrices = reg.try_get<camera::CameraMatrices>(camera);
+        glm::mat4 view = p_camera_matrices ? p_camera_matrices->view : glm::mat4(1.f);
+        glm::mat4 proj = p_camera_matrices ? p_camera_matrices->projection : glm::mat4(1.f);
 
         // ---------------------------------------------------------
         // 3. Render all meshes
@@ -92,11 +90,12 @@ namespace graphics::rendering::renderer
             glUseProgram(shader.id);
 
             // --- Optional Color uniform ---
-            if (auto color = reg.try_get<Color>(entity))
+            if (components::Color* p_color_component = reg.try_get<components::Color>(entity))
             {
+                glm::vec4 final_color = compute_final_color(*p_color_component, reg.try_get<components::Flash>(entity));
                 GLint loc = glGetUniformLocation(shader.id, "u_color");
                 if (loc >= 0)
-                    glUniform4fv(loc, 1, color->rgba);
+                    glUniform4fv(loc, 1, glm::value_ptr(final_color));
             }
 
             // --- Optional Texture binding ---

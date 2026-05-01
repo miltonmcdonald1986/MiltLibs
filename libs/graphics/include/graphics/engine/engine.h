@@ -10,10 +10,10 @@ namespace graphics::engine { struct AppData; }
 namespace graphics::engine
 {
 
-	using GraphicsInitFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
-	using GraphicsUpdateFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
+	using InitFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
+	using UpdateFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
 
-	std::expected<void, std::string> run(GraphicsInitFn init_fn, GraphicsUpdateFn update_fn);
+	std::expected<void, std::string> run(InitFn init_fn, UpdateFn update_fn);
 
 }
 
