@@ -4,6 +4,7 @@
 #include <expected>
 #include <string>
 
+#include <graphics/engine/result.h>
 #include <graphics/platform/window_config.h>
 #include <graphics/platform/window_state.h>
 
@@ -17,7 +18,7 @@ namespace graphics::platform
 	{
 		~Window();
 
-		std::expected<void, std::string> init_glfw(engine::AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile);
+		engine::Status init_glfw(engine::AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile);
 		void poll_events();
 		void swap_buffers();
 		void terminate_glfw();

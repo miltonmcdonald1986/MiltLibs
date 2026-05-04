@@ -2,6 +2,8 @@
 
 #include <print>
 
+#include <imgui_impl_glfw.h>
+
 #include <graphics/engine/app_data.h>
 #include <graphics/input/glfw_key.h>
 #include <graphics/platform/window.h>
@@ -40,6 +42,10 @@ namespace graphics::platform
 
     void glfw_framebuffer_size_callback(GLFWwindow* p_window, int w, int h)
     {
+        // Ignore minimized window
+        if (w == 0 || h == 0)
+            return;
+
         engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
@@ -54,9 +60,17 @@ namespace graphics::platform
         glViewport(0, 0, w, h);
     }
 
-    void glfw_key_callback(GLFWwindow* p_window, int glfw_key, int /*scancode*/, int action, int mods)
+    void glfw_key_callback(GLFWwindow* p_window, int glfw_key, int scancode, int action, int mods)
     {
         using input::Key;
+
+        ImGui_ImplGlfw_KeyCallback(p_window, glfw_key, scancode, action, mods);
+
+        if (ImGui::GetIO().WantCaptureKeyboard)
+        {
+            if (action != GLFW_RELEASE)
+                return;
+        }
 
         engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
@@ -88,6 +102,11 @@ namespace graphics::platform
     void glfw_mouse_button_callback(GLFWwindow* p_window, int button, int action, int mods)
     {
         using input::Key;
+
+        ImGui_ImplGlfw_MouseButtonCallback(p_window, button, action, mods);
+
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
 
         engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
@@ -129,6 +148,13 @@ namespace graphics::platform
 
     void glfw_scroll_callback(GLFWwindow* p_window, double xoff, double yoff) 
     {
+        // Always forward to ImGui first
+        ImGui_ImplGlfw_ScrollCallback(p_window, xoff, yoff);
+
+        // If ImGui wants the mouse, do NOT use scroll in your engine
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
+
         engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;

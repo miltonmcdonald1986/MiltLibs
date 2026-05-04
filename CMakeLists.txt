@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_definitions(SPDLOG_USE_STD_FORMAT)
+
 # Generate compile_commands.json for IDE support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -64,6 +66,24 @@ FetchContent_Declare(
     GIT_TAG docking
 )
 FetchContent_MakeAvailable(imgui)
+
+include(FetchContent)
+
+# Fetch magic_enum
+FetchContent_Declare(
+    magic_enum
+    GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
+    GIT_TAG        v0.9.8
+)
+FetchContent_MakeAvailable(magic_enum)
+
+# Fetch spdlog
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0   # or latest stable
+)
+FetchContent_MakeAvailable(spdlog)
 
 # Fetch stb (for image loading)
 FetchContent_Declare(

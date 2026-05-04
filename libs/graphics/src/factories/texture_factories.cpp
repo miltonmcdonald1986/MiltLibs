@@ -8,13 +8,13 @@
 namespace graphics::factories
 {
 
-    std::expected<components::Texture, std::string> create_texture_from_file(const char* path)
+    engine::Result<components::Texture> create_texture_from_file(const char* path)
     {
         int width = 0, height = 0, channels = 0;
         unsigned char* data = stbi_load(path, &width, &height, &channels, 4);
 
         if (!data)
-            return std::unexpected(std::format("Failed to load image '{}': {}", path, stbi_failure_reason()));
+            return UNEXPECTED(engine::ErrorCategory::Factories, std::format("Failed to load image '{}': {}", path, stbi_failure_reason()));
 
         GLuint tex = 0;
         glGenTextures(1, &tex);

@@ -43,7 +43,7 @@ namespace graphics::rendering
 
         // Check for any OpenGL errors that may have occurred during initialization.
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected(ERR("An OpenGL occurred while trying to init GL state", engine::error_categories::Rendering));
+            return UNEXPECTED(engine::ErrorCategory::Rendering, "An OpenGL occurred while trying to init GL state");
 
         return {};
     }
@@ -51,7 +51,7 @@ namespace graphics::rendering
     engine::Status Renderer::update(scene::Scene* p_scene)
     {
         if (!p_scene)
-            return std::unexpected(ERR("No active scene found", engine::error_categories::Rendering));
+            return UNEXPECTED(engine::ErrorCategory::Rendering, "No active scene found");
 
         entt::registry& reg = p_scene->reg;
 

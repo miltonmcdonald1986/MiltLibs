@@ -60,5 +60,7 @@ target_link_libraries(graphics
         gl3w
         glm::glm
         imgui
+        magic_enum::magic_enum
         OpenGL::GL
+        spdlog::spdlog
 )

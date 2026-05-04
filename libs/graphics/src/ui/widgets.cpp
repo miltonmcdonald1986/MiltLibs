@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 
+#include <spdlog/sinks/ringbuffer_sink.h>
+
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/shake.h>
@@ -37,6 +39,65 @@ namespace graphics::ui
             ImGui::SliderFloat(label.c_str(), &flash_component.speed, 0.1f, 10.0f);
         }
 		ImGui::End();
+    }
+
+    std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> GetRingbufferSink(engine::Logger sp_logger)
+    {
+        if (!sp_logger)
+            return nullptr;
+
+        for (auto& sink : sp_logger->sinks())
+        {
+            if (auto rb = std::dynamic_pointer_cast<spdlog::sinks::ringbuffer_sink_mt>(sink))
+                return rb;
+        }
+
+        return nullptr;
+    }
+
+    void draw_log_widget()
+    {
+        engine::Logger spLogger = engine::logger();
+        if (!spLogger)
+            return;
+
+        ImGui::Begin("Logger");
+
+        // Filter box
+        static ImGuiTextFilter filter;
+        filter.Draw("Filter");
+
+        ImGui::Separator();
+
+        // Scrollable region
+        ImGui::BeginChild(
+            "LogScrollRegion",
+            ImVec2(0, 0),
+            false,
+            ImGuiWindowFlags_HorizontalScrollbar
+        );
+
+        auto ring = GetRingbufferSink(spLogger);
+        if (!ring)
+            return;
+
+        // Pull formatted log messages from the ring buffer
+        auto items = ring->last_formatted(2000); // or ring->capacity()
+
+        // Display each line
+        for (auto& msg : items) 
+        {
+            const char* text = msg.c_str();
+            if (filter.PassFilter(text))
+                ImGui::TextUnformatted(text);
+        }
+
+        // Auto-scroll if at bottom
+        if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+            ImGui::SetScrollHereY(1.0f);
+
+        ImGui::EndChild();
+        ImGui::End();
     }
 
     void draw_per_entity_color_widget(engine::AppData* p_data)

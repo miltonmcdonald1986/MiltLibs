@@ -3,7 +3,7 @@ add_executable(horner1
 )
 
 if (WIN32)
-    set_target_properties(horner1 PROPERTIES WIN32_EXECUTABLE TRUE)
+	set_target_properties(horner1 PROPERTIES WIN32_EXECUTABLE TRUE)
 	target_link_options(horner1 PRIVATE "/ENTRY:mainCRTStartup")
 endif()
 

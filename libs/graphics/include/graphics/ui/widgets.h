@@ -7,6 +7,7 @@ namespace graphics::ui
 {
 
 	void draw_flash_widget(engine::AppData* p_data);
+	void draw_log_widget();
 	void draw_per_entity_color_widget(engine::AppData* p_data);
 	void draw_render_settings_widget(engine::AppData* p_data);
 	void draw_shake_widget(engine::AppData* p_data);

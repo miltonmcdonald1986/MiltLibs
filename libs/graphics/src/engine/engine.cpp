@@ -2,7 +2,6 @@
 
 #include <graphics/camera/camera_systems.h>
 #include <graphics/engine/app_data.h>
-#include <graphics/engine/error.h>
 #include <graphics/engine/result.h>
 #include <graphics/input/input_systems.h>
 #include <graphics/platform/window.h>
@@ -40,23 +39,22 @@ namespace graphics::engine
     {
         platform::Window* p_window = data.p_window;
         if (!p_window)
-            return std::unexpected(ERR("No window found", engine::error_categories::Engine));
+            return UNEXPECTED(engine::ErrorCategory::Engine, "No window found");
 
         rendering::Renderer* p_renderer = data.p_renderer;
         if (!p_renderer)
-            return std::unexpected(ERR("No renderer found", engine::error_categories::Engine));
+            return UNEXPECTED(engine::ErrorCategory::Engine, "No renderer found");
 
         auto& gl_config = p_window->window_config.gl_config;
-        if (auto result = p_window->init_glfw(&data, gl_config.version_major, gl_config.version_minor, gl_config.profile); !result)
-            return std::unexpected(ERR("Failed to initialize GLFW", engine::error_categories::Engine));
+        if (Status status = p_window->init_glfw(&data, gl_config.version_major, gl_config.version_minor, gl_config.profile); !status)
+            return std::unexpected(status.error());
 
         int w, h;
         glfwGetFramebufferSize(p_window->window_state.pHandle, &w, &h);
-        if (auto result = p_renderer->init(w, h); !result)
-            return std::unexpected(ERR("Failed to initialize OpenGL state", engine::error_categories::Engine));
+        if (Status status = p_renderer->init(w, h); !status)
+            return std::unexpected(status.error());
 
         ui::init_imgui(p_window->window_state.pHandle);
-
         ui::register_inspectors();
         systems::register_transform_observers(&data);
 
@@ -79,7 +77,7 @@ namespace graphics::engine
 
             // USER SYSTEMS
             if (auto result = update_fn(&data); !result)
-                return result;
+                return UNEXPECTED(engine::ErrorCategory::Engine, "User-provided update function failed");
 
             rendering::Renderer* p_renderer = data.p_renderer;
             if (!p_renderer)
@@ -123,15 +121,13 @@ namespace graphics::engine
 
         ImGuiTerminateGuard imgui_terminator{};
 
-        if (Status result = init(data); !result)
-            return result;
+        RETURN_IF_UNEXPECTED(init(data));
 
         if (auto result = init_fn(&data); !result)
-            return result;
+            return UNEXPECTED(engine::ErrorCategory::Engine, "User-provided init function failed");
 
-        if (auto result = loop(data, update_fn); !result)
-            return result;
-
+        RETURN_IF_UNEXPECTED(loop(data, update_fn));
+        
         return {};
     }
 

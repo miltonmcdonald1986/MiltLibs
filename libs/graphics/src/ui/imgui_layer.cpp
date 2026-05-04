@@ -40,7 +40,7 @@ namespace graphics::ui
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // ⭐ enable docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // ⭐ enable multi-window
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // ⭐ enable multi-window
 
         ImGui::StyleColorsDark();
 
@@ -52,7 +52,7 @@ namespace graphics::ui
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        ImGui_ImplGlfw_InitForOpenGL(p_window, true);
+        ImGui_ImplGlfw_InitForOpenGL(p_window, false);
         ImGui_ImplOpenGL3_Init("#version 330 core");
     }
 

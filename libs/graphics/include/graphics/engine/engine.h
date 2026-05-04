@@ -12,8 +12,8 @@ namespace graphics::engine { struct AppData; }
 namespace graphics::engine
 {
 
-	using InitFn = std::function<Status(engine::AppData*)>;
-	using UpdateFn = std::function<Status(engine::AppData*)>;
+	using InitFn = std::function<bool(engine::AppData*)>;
+	using UpdateFn = std::function<bool(engine::AppData*)>;
 
 	Status run(InitFn init_fn, UpdateFn update_fn);
 
