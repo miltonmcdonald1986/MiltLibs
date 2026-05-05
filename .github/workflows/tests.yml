@@ -1,0 +1,42 @@
+name: Tests (Linux)
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GCC 14
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+          sudo apt install -y g++-14
+
+      - name: Install Wayland + X11 deps for GLFW
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libwayland-dev \
+            libwayland-bin \
+            wayland-protocols \
+            libxkbcommon-dev \
+            xorg-dev
+
+      - name: Configure (Debug)
+        run: cmake -B build \
+              -DCMAKE_CXX_COMPILER=g++-14 \
+              -DCMAKE_C_COMPILER=gcc-14 \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run Tests
+        run: ctest --test-dir build --output-on-failure

@@ -1,3 +1,7 @@
+![Build (Windows MSVC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build_windows.yml/badge.svg)
+![Build (Linux GCC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build_gcc.yml/badge.svg)
+![Tests (Linux)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/tests.yml/badge.svg)
+
 # MiltLibs
 
 A modern C++23 library collection featuring graphics and NURBS (Non-Uniform Rational B-Splines) support.
