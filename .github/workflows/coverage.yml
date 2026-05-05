@@ -25,17 +25,22 @@ jobs:
 
       - name: Run Coverage
         run: |
+          $repoRoot = (Get-Location).Path
+
           $testExe = Get-ChildItem -Recurse -Filter "*tests.exe" build | Select-Object -First 1
           if (-not $testExe) { throw "Test executable not found" }
 
           & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
-            --sources libs `
-            --sources src `
             --export_type html:coverage-report `
-            -- $testExe.FullName
-
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage-report
+            --modules $repoRoot `
+            --sources $repoRoot `
+            --excluded_sources "$repoRoot\build" `
+            --excluded_sources "$repoRoot\build\*" `
+            --excluded_sources "$repoRoot\build\_deps" `
+            --excluded_sources "$repoRoot\build\_deps\*" `
+            --excluded_sources "*googletest*" `
+            --excluded_sources "*gtest*" `
+            --excluded_sources "*Windows Kits*" `
+            --excluded_sources "*ucrt*" `
+            --excluded_sources "*vctools*" `
+            -- $testExe.Full
