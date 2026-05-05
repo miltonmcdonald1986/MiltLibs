@@ -18,6 +18,16 @@ jobs:
           sudo apt update
           sudo apt install -y g++-14
 
+      - name: Install Wayland + X11 deps for GLFW
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libwayland-dev \
+            libwayland-bin \
+            wayland-protocols \
+            libxkbcommon-dev \
+            xorg-dev
+
       - name: Configure
         run: cmake -B build -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_BUILD_TYPE=Release
 
