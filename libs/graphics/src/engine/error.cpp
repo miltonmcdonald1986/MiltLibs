@@ -9,24 +9,9 @@ namespace graphics::engine
 
     static constexpr std::string_view PROJECT_ROOT = "MiltLibs";
 
-    bool is_user_frame(const std::stacktrace_entry& entry)
-    {
-        std::string_view file = entry.source_file();
-        return file.find(PROJECT_ROOT) != std::string_view::npos;
-    }
-
     void log_error(const ErrorInfo& err)
     {
         engine::logger()->error("[{}] {} ({}:{})", magic_enum::enum_name(err.category), err.message, err.file, err.line);
-        if (!err.trace.empty()) 
-        {
-            engine::logger()->error("Stacktrace:");
-            for (const std::stacktrace_entry& f : err.trace) 
-            {
-                if (is_user_frame(f))
-                    engine::logger()->error("  {}", f);
-            }
-        }
     }
 
     auto logger() -> Logger&

@@ -30,7 +30,6 @@
         "rhs": "Windows"
       }
     },
-
     {
       "name": "linux-gcc-debug",
       "displayName": "Linux GCC Debug",
@@ -62,39 +61,6 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       }
-    },
-
-    {
-      "name": "linux-clang-debug",
-      "displayName": "Linux Clang Debug",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/linux-clang-debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "linux-clang-release",
-      "displayName": "Linux Clang Release",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/linux-clang-release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
     }
   ],
 
@@ -117,7 +83,6 @@
         "rhs": "Windows"
       }
     },
-
     {
       "name": "linux-gcc-debug",
       "configurePreset": "linux-gcc-debug",
@@ -130,25 +95,6 @@
     {
       "name": "linux-gcc-release",
       "configurePreset": "linux-gcc-release",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-
-    {
-      "name": "linux-clang-debug",
-      "configurePreset": "linux-clang-debug",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "linux-clang-release",
-      "configurePreset": "linux-clang-release",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

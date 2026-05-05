@@ -23,4 +23,9 @@ else()
     target_compile_options(nurbs INTERFACE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(nurbs INTERFACE --coverage -O0 -g)
+    target_link_options(nurbs INTERFACE --coverage)
+endif()
+
 target_sources(nurbs INTERFACE FILE_SET HEADERS BASE_DIRS include FILES ${NURBS_HEADERS})

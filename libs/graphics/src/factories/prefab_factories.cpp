@@ -13,8 +13,6 @@ namespace graphics::factories
 		if (!mesh_result)
             return std::unexpected(mesh_result.error());
 
-        components::MeshGL mesh = *mesh_result;
-
         auto color_shader_result = create_color_shader();
         if (!color_shader_result) 
             return std::unexpected(color_shader_result.error());
@@ -33,8 +31,6 @@ namespace graphics::factories
         auto mesh_result = create_rainbow_triangle_mesh();
         if (!mesh_result)
             return std::unexpected(mesh_result.error());
-
-        components::MeshGL mesh = *mesh_result;
 
         auto vertex_color_shader_result = create_vertex_color_shader();
         if (!vertex_color_shader_result) 

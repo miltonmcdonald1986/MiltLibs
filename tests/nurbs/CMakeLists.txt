@@ -10,6 +10,11 @@ set(TEST_SOURCES
 
 add_executable(nurbs_tests ${TEST_SOURCES})
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(nurbs_tests PRIVATE --coverage -O0 -g)
+    target_link_options(nurbs_tests PRIVATE --coverage)
+endif()
+
 target_link_libraries(nurbs_tests
     PRIVATE
         nurbs

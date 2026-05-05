@@ -2,6 +2,7 @@
 #define GRAPHICS_INPUT_KEY_STATE_H
 
 #include <array>
+#include <cstddef>
 
 #include <graphics/input/key.h>
 
