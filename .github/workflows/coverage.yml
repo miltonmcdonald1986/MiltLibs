@@ -24,6 +24,7 @@ jobs:
         run: cmake --build build --parallel
 
       - name: Run Coverage
+        shell: pwsh
         run: |
           $repoRoot = (Get-Location).Path
 
@@ -32,6 +33,7 @@ jobs:
 
           & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
             --export_type html:coverage-report `
+            --export_type cobertura:coverage.xml `
             --modules $repoRoot `
             --sources $repoRoot `
             --excluded_sources "$repoRoot\build" `
@@ -43,4 +45,25 @@ jobs:
             --excluded_sources "*Windows Kits*" `
             --excluded_sources "*ucrt*" `
             --excluded_sources "*vctools*" `
-            -- $testExe.Full
+            -- $testExe.FullName
+
+      - name: Extract Coverage Percentage
+        shell: pwsh
+        run: |
+          [xml]$xml = Get-Content coverage.xml
+          $linesValid = [int]$xml.coverage.'lines-valid'
+          $linesCovered = [int]$xml.coverage.'lines-covered'
+          $percent = [math]::Round(($linesCovered / $linesValid) * 100)
+          Set-Content -Path coverage.json -Value "{ `"schemaVersion`": 1, `"label`": `"coverage`", `"message`": `"$percent%`", `"color`": `"blue`" }"
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
+
+      - name: Upload Coverage Badge
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-badge
+          path: coverage.json
