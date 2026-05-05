@@ -1,5 +1,5 @@
-![Build (Windows MSVC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build-windows.yml/badge.svg)
-![Build (Linux GCC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build-gcc.yml/badge.svg)
+![Build (Windows MSVC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build_windows.yml/badge.svg)
+![Build (Linux GCC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build_gcc.yml/badge.svg)
 
 # MiltLibs
 
