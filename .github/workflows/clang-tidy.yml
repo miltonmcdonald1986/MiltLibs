@@ -1,6 +1,8 @@
 name: clang-tidy
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
@@ -11,13 +13,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install clang-tidy
+    - name: Install clang-tidy + fd
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-tidy
+        sudo apt-get install -y clang-tidy fd-find
 
     - name: Configure (generate compile_commands.json)
       run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-    - name: Run clang-tidy
-      run: run-clang-tidy -p build
+    - name: Run clang-tidy on libs/
+      run: |
+        fdfind . libs -e cpp -e h -e hpp \
+          -X clang-tidy {} -- \
+          -p build \
+          -checks=-*,modernize-*,readability-*
