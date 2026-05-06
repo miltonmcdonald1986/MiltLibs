@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_CAMERA_CAMERA_H
-#define GRAPHICS_CAMERA_CAMERA_H
+#ifndef GRAPHICS_CAMERA_CAMERA_HPP
+#define GRAPHICS_CAMERA_CAMERA_HPP
 
 #include <graphics/camera/projection_type.h>
 
@@ -11,6 +11,6 @@ namespace graphics::camera
         ProjectionType type{ ProjectionType::Perspective };
     };
 
-}
+} // namespace graphics::camera
 
-#endif // GRAPHICS_COMPONENTS_CAMERA_H
+#endif // GRAPHICS_CAMERA_CAMERA_HPP

@@ -2,7 +2,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <graphics/camera/camera.h>
+#include <graphics/camera/camera.hpp>
 #include <graphics/camera/camera_matrices.h>
 #include <graphics/camera/camera_systems.h>
 #include <graphics/components/color.h>

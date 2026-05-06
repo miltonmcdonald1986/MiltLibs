@@ -2,8 +2,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <graphics/camera/camera.h>
-#include <graphics/camera/camera_controller.h>
+#include <graphics/camera/camera.hpp>
+#include <graphics/camera/camera_controller.hpp>
 #include <graphics/camera/camera_controller_state.h>
 #include <graphics/camera/camera_matrices.h>
 #include <graphics/camera/orthographic_camera.h>

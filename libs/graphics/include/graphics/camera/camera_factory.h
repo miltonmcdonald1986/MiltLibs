@@ -5,8 +5,8 @@
 
 #include <glm/glm.hpp>
 
-#include <graphics/camera/camera.h>
-#include <graphics/camera/camera_controller.h>
+#include <graphics/camera/camera.hpp>
+#include <graphics/camera/camera_controller.hpp>
 #include <graphics/camera/orthographic_camera.h>
 #include <graphics/camera/perspective_camera.h>
 #include <graphics/camera/projection_type.h>
