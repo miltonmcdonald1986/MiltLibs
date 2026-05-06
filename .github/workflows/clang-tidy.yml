@@ -1,4 +1,4 @@
-name: clang-tidy
+name: clang-tidy (Linux)
 
 on:
   push:
@@ -12,6 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install Wayland dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwayland-bin wayland-protocols libwayland-dev libxkbcommon-dev
 
     - name: Install clang-tidy + fd
       run: |
