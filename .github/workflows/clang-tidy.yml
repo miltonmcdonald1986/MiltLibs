@@ -46,7 +46,7 @@ jobs:
 
     - name: Run clang-tidy on libs/
       run: |
-        fdfind . libs -X clang-tidy -p build \
+        fdfind . libs -e cpp -e h -e hpp -X clang-tidy -p build \
           --extra-arg="-Ilibs/graphics/include" \
           -checks=" \
           *, \
