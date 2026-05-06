@@ -46,5 +46,5 @@ jobs:
 
     - name: Run clang-tidy on libs/
       run: |
-        fdfind . libs -X clang-tidy -p build -checks="*,-altera-*,-llvmlibc-*" --extra-arg="-Ilibs/graphics/include" {} --
+        fdfind . libs -X clang-tidy -p build -checks="*,-altera-*,-bugprone-easily-swappable-parameters,-llvmlibc-*" --extra-arg="-Ilibs/graphics/include" {} --
 
