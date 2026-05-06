@@ -46,7 +46,9 @@ jobs:
 
     - name: Run clang-tidy on libs/
       run: |
-        fdfind . libs -e cpp -e h -e hpp \
-          -X clang-tidy {} -- \
+        fdfind libs -e cpp -e h -e hpp \
+          -X clang-tidy \
           -p build \
-          -checks=-*,modernize-*,readability-*
+          -checks=-*,modernize-*,readability-* \
+          {} --
+
