@@ -1,7 +1,5 @@
 #include <graphics/platform/glfw_callbacks.h>
 
-#include <print>
-
 #include <imgui_impl_glfw.h>
 
 #include <graphics/engine/app_data.h>
@@ -37,7 +35,7 @@ namespace graphics::platform
 
     void glfw_error_callback(int error_code, const char* description)
     {
-        std::print("GLFW Error (code {}): {}\n", error_code, description);
+        engine::logger()->error("GLFW Error (code {}): {}\n", error_code, description);
     }
 
     void glfw_framebuffer_size_callback(GLFWwindow* p_window, int w, int h)
