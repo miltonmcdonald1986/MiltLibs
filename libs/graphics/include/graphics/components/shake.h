@@ -12,7 +12,7 @@ namespace graphics::components
         float intensity = 0.02f; // how strong the shake is
         float speed = 60.0f;     // how fast it jitters
 		
-        glm::mat4 base_world{ 1.f }; // the anchor, should be set to the entity's original world matrix and never modified by hand after that
+        glm::mat4 base_world{ 1.F }; // the anchor, should be set to the entity's original world matrix and never modified by hand after that
     };
 
     struct ShakeOnce
@@ -22,7 +22,7 @@ namespace graphics::components
         float intensity = 0.05f;  // shake strength
         float speed = 60.0f;      // jitter speed
         
-		glm::mat4 base_world{ 1.f };  // the anchor, should be set to the entity's original world matrix and never modified by hand after that
+		glm::mat4 base_world{ 1.F };  // the anchor, should be set to the entity's original world matrix and never modified by hand after that
     };
 
 }

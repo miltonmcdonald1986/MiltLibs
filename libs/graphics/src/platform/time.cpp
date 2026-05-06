@@ -10,7 +10,7 @@ namespace graphics::platform
         double now = glfwGetTime();
 
         if (prev == 0.)
-            dt = 0.f;
+            dt = 0.F;
         else
             dt = static_cast<float>(now - prev);
 

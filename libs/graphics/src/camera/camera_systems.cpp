@@ -115,7 +115,7 @@ namespace graphics::camera
 			}
 		}
 
-		return glm::mat4(1.f);
+		return glm::mat4(1.F);
 	}
 
 	void update_camera_system(entt::registry& reg, float dt)
@@ -128,9 +128,9 @@ namespace graphics::camera
 		for (auto [cam_ent, camera, camera_controller, camera_controller_state, camera_matrices, transform] : view.each())
 		{
 			if (camera_controller.enable_look && camera_controller_state.look_active)
-				look(transform, camera_controller_state.look_delta.x, -1.f * camera_controller_state.look_delta.y, camera_controller.look_sensitivity, camera_controller.pitch_limit);
+				look(transform, camera_controller_state.look_delta.x, -1.F * camera_controller_state.look_delta.y, camera_controller.look_sensitivity, camera_controller.pitch_limit);
 
-			if (camera_controller.enable_zoom && camera_controller_state.zoom_delta != 0.f)
+			if (camera_controller.enable_zoom && camera_controller_state.zoom_delta != 0.F)
 				zoom_scroll(reg, cam_ent, camera_controller_state.zoom_delta, camera_controller.zoom_speed);
 
 			if (camera_controller.enable_movement)

@@ -8,7 +8,7 @@ namespace graphics::components
 
     struct Color 
     {
-        glm::vec4 rgba{ glm::vec4(1.f) };
+        glm::vec4 rgba{ glm::vec4(1.F) };
     };
 
 }

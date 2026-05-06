@@ -21,10 +21,10 @@ namespace graphics::utils
         z = glm::normalize(z);
 
         // Rebuild TR matrix
-        glm::mat4 m_no_scale(1.f);
-        m_no_scale[0] = glm::vec4(x, 0.f);
-        m_no_scale[1] = glm::vec4(y, 0.f);
-        m_no_scale[2] = glm::vec4(z, 0.f);
+        glm::mat4 m_no_scale(1.F);
+        m_no_scale[0] = glm::vec4(x, 0.F);
+        m_no_scale[1] = glm::vec4(y, 0.F);
+        m_no_scale[2] = glm::vec4(z, 0.F);
         m_no_scale[3] = m[3]; // translation
 
         return m_no_scale;

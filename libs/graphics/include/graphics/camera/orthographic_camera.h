@@ -8,7 +8,7 @@ namespace graphics::camera
 
     struct OrthographicCamera
     {
-        float height{ 10.f };   // vertical size of view volume in world units
+        float height{ 10.F };   // vertical size of view volume in world units
         ClipPlanes clip_planes{};
     };
 

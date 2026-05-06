@@ -15,9 +15,9 @@ namespace graphics::input
         for (auto [ent, controller, state] : view.each())
         {
             // Reset state
-            state.move_delta = glm::vec3(0.f);
-            state.look_delta = glm::vec2(0.f);
-            state.zoom_delta = 0.f;
+            state.move_delta = glm::vec3(0.F);
+            state.look_delta = glm::vec2(0.F);
+            state.zoom_delta = 0.F;
 
             // LOOK
             state.look_active = input.keys[controller.look_activation];
@@ -27,12 +27,12 @@ namespace graphics::input
             // MOVE
             if (controller.enable_movement)
             {
-                if (input.keys[controller.forward])  state.move_delta.z += 1.f;
-                if (input.keys[controller.backward]) state.move_delta.z -= 1.f;
-                if (input.keys[controller.right])    state.move_delta.x += 1.f;
-                if (input.keys[controller.left])     state.move_delta.x -= 1.f;
-                if (input.keys[controller.up])       state.move_delta.y += 1.f;
-                if (input.keys[controller.down])     state.move_delta.y -= 1.f;
+                if (input.keys[controller.forward])  state.move_delta.z += 1.F;
+                if (input.keys[controller.backward]) state.move_delta.z -= 1.F;
+                if (input.keys[controller.right])    state.move_delta.x += 1.F;
+                if (input.keys[controller.left])     state.move_delta.x -= 1.F;
+                if (input.keys[controller.up])       state.move_delta.y += 1.F;
+                if (input.keys[controller.down])     state.move_delta.y -= 1.F;
             }
 
             // ZOOM

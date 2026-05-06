@@ -23,9 +23,9 @@ namespace graphics::components
         bool dirty{ false };
 
     private:
-        glm::vec3 position  { 0.f, 0.f, 0.f };
-        glm::vec3 rotation  { 0.f, 0.f, 0.f }; // Euler angles in radians
-        glm::vec3 scale     { 1.f, 1.f, 1.f };
+        glm::vec3 position  { 0.F, 0.F, 0.F };
+        glm::vec3 rotation  { 0.F, 0.F, 0.F }; // Euler angles in radians
+        glm::vec3 scale     { 1.F, 1.F, 1.F };
     };
 
 }

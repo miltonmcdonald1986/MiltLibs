@@ -49,7 +49,7 @@ namespace graphics::systems
         {
             // Countdown
             shake.time_left -= dt;
-            if (shake.time_left <= 0.f)
+            if (shake.time_left <= 0.F)
             {
                 // Restore original position
                 reg.remove<components::ShakeOnce>(e);

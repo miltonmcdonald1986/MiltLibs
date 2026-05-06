@@ -8,8 +8,8 @@ namespace graphics::camera
 
 	struct CameraMatrices
 	{
-		glm::mat4 view{ glm::mat4(1.f) };
-		glm::mat4 projection{ glm::mat4(1.f) };
+		glm::mat4 view{ glm::mat4(1.F) };
+		glm::mat4 projection{ glm::mat4(1.F) };
 	};
 
 }

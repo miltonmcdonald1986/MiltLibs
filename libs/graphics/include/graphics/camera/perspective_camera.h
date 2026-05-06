@@ -8,7 +8,7 @@ namespace graphics::camera
 
     struct PerspectiveCamera
     {
-        float fov{ 60.f }; // vertical field of view in degrees
+        float fov{ 60.F }; // vertical field of view in degrees
         ClipPlanes clip_planes{};
     };
 

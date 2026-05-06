@@ -71,8 +71,8 @@ namespace graphics::rendering
 
         entt::entity camera = reg.view<camera::Camera>().front();
         camera::CameraMatrices* p_camera_matrices = reg.try_get<camera::CameraMatrices>(camera);
-        glm::mat4 view = p_camera_matrices ? p_camera_matrices->view : glm::mat4(1.f);
-        glm::mat4 proj = p_camera_matrices ? p_camera_matrices->projection : glm::mat4(1.f);
+        glm::mat4 view = p_camera_matrices ? p_camera_matrices->view : glm::mat4(1.F);
+        glm::mat4 proj = p_camera_matrices ? p_camera_matrices->projection : glm::mat4(1.F);
 
         // ---------------------------------------------------------
         // 3. Render all meshes

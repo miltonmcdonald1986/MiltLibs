@@ -4,9 +4,9 @@ namespace graphics::components
 {
 
     Transform::Transform()
-        : position(glm::vec3(1.f))
-        , rotation(glm::vec3(1.f))
-        , scale(glm::vec3(1.f))
+        : position(glm::vec3(1.F))
+        , rotation(glm::vec3(1.F))
+        , scale(glm::vec3(1.F))
     {
     }
 
