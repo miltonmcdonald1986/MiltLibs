@@ -2,6 +2,7 @@
 ![Build (Linux GCC)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/build_gcc.yml/badge.svg)
 ![Tests (Linux)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/tests.yml/badge.svg)
 ![Coverage (Windows)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/coverage.yml/badge.svg)
+![clang-tidy (Linux)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/clang-tidy.yml/badge.svg)
 
 # MiltLibs
 
