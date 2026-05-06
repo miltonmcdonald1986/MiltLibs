@@ -13,6 +13,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install OpenGL dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev \
+          mesa-common-dev
+
     - name: Install X11 dependencies
       run: |
         sudo apt-get update
