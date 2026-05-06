@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 #include <graphics/camera/camera_controller.hpp>
-#include <graphics/camera/camera_controller_state.h>
+#include <graphics/camera/camera_controller_state.hpp>
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/engine/app_data.h>
 

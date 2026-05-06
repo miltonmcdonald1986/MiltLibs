@@ -8,6 +8,7 @@ namespace graphics::camera
 
     namespace defaults
     {
+
         inline constexpr bool enable_look { true };
         inline constexpr bool enable_movement{ true };
         inline constexpr bool enable_zoom { true };
@@ -17,14 +18,15 @@ namespace graphics::camera
         inline constexpr float zoom_speed { 0.1F };
         inline constexpr input::Key enable_movement_toggle { input::Key::Unknown };
         inline constexpr input::Key enable_zoom_toggle { input::Key::Unknown };
-        inline constexpr input::Key backward { input::Key::S };
-        inline constexpr input::Key down { input::Key::Q };
-        inline constexpr input::Key forward { input::Key::W };
-        inline constexpr input::Key left { input::Key::A };
+        inline constexpr input::Key move_backward { input::Key::S };
+        inline constexpr input::Key move_down { input::Key::Q };
+        inline constexpr input::Key move_forward { input::Key::W };
+        inline constexpr input::Key move_left { input::Key::A };
         inline constexpr input::Key look_activation { input::Key::MouseRight };
-        inline constexpr input::Key right { input::Key::D };
-        inline constexpr input::Key up { input::Key::E };
-    }
+        inline constexpr input::Key move_right { input::Key::D };
+        inline constexpr input::Key move_up { input::Key::E };
+
+    } // namespace defaults
 
     struct CameraController 
     {
@@ -32,12 +34,12 @@ namespace graphics::camera
         bool enable_movement { defaults::enable_movement };
         float move_speed { defaults::move_speed };
         input::Key enable_movement_toggle { defaults::enable_movement_toggle };
-        input::Key forward { defaults::forward };
-        input::Key backward { defaults::backward };
-        input::Key right { defaults::right };
-        input::Key left { defaults::left };
-        input::Key up { defaults::up };
-        input::Key down { defaults::down };
+        input::Key forward { defaults::move_forward };
+        input::Key backward { defaults::move_backward };
+        input::Key right { defaults::move_right };
+        input::Key left { defaults::move_left };
+        input::Key up { defaults::move_up };
+        input::Key down { defaults::move_down };
 
         // Look parameters
         bool enable_look { defaults::enable_look };
