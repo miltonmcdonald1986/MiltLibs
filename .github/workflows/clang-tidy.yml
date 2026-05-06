@@ -48,6 +48,7 @@ jobs:
       run: |
         fdfind . libs -e cpp -e h -e hpp -X clang-tidy -p build \
           --extra-arg="-Ilibs/graphics/include" \
+          --extra-arg="-Ibuild/_deps/entt-src/src" \
           --extra-arg="-Ibuild/_deps/glm-src" \
           -checks=" \
           *, \
