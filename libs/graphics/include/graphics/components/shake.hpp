@@ -1,7 +1,7 @@
-#ifndef GRAPHICS_COMPONENTS_SHAKE_H
-#define GRAPHICS_COMPONENTS_SHAKE_H
+#ifndef GRAPHICS_COMPONENTS_SHAKE_HPP
+#define GRAPHICS_COMPONENTS_SHAKE_HPP
 
-#include <glm/glm.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace graphics::components
 {
@@ -25,6 +25,6 @@ namespace graphics::components
 		glm::mat4 base_world{ 1.F };  // the anchor, should be set to the entity's original world matrix and never modified by hand after that
     };
 
-}
+} // namespace graphics::components
 
-#endif // GRAPHICS_COMPONENTS_SHAKE_H
+#endif // GRAPHICS_COMPONENTS_SHAKE_HPP

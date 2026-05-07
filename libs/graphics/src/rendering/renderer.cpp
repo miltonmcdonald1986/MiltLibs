@@ -3,12 +3,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <graphics/camera/camera.hpp>
-#include <graphics/camera/camera_matrices.h>
-#include <graphics/camera/camera_systems.h>
-#include <graphics/components/color.h>
-#include <graphics/components/flash.h>
-#include <graphics/components/mesh_gl.h>
-#include <graphics/components/shader.h>
+#include <graphics/camera/camera_matrices.hpp>
+#include <graphics/camera/camera_systems.hpp>
+#include <graphics/components/color.hpp>
+#include <graphics/components/flash.hpp>
+#include <graphics/components/mesh_gl.hpp>
+#include <graphics/components/shader.hpp>
 #include <graphics/components/texture.h>
 #include <graphics/components/world_matrix.h>
 #include <graphics/platform/gl_includes.h>

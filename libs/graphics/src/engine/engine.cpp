@@ -1,6 +1,6 @@
 #include <graphics/engine/engine.h>
 
-#include <graphics/camera/camera_systems.h>
+#include <graphics/camera/camera_systems.hpp>
 #include <graphics/engine/app_data.h>
 #include <graphics/engine/result.h>
 #include <graphics/input/input_systems.h>

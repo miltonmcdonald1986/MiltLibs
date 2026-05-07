@@ -1,6 +1,6 @@
 #include <graphics/factories/prefab_factories.h>
 
-#include <graphics/components/shader.h>
+#include <graphics/components/shader.hpp>
 #include <graphics/factories/mesh_factories.h>
 #include <graphics/factories/shader_factories.h>
 

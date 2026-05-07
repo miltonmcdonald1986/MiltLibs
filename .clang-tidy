@@ -1,0 +1,13 @@
+Checks: >
+  -*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  portability-*,
+  readability-*
+  
+HeaderFilterRegex: '^libs/'
+
+ExtraArgsBefore:
+  - -I./libs/graphics/include

@@ -1,6 +1,8 @@
-#include <graphics/camera/camera_factory.h>
+#include <graphics/camera/camera_factory.hpp>
 
-#include <graphics/camera/camera_matrices.h>
+#include <entt/entity/registry.hpp>
+
+#include <graphics/camera/camera_matrices.hpp>
 #include <graphics/camera/camera_controller_state.hpp>
 #include <graphics/components/transform.h>
 

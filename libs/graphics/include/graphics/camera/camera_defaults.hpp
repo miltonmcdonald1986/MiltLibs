@@ -1,0 +1,73 @@
+#ifndef GRAPHICS_CAMERA_CAMERA_DEFAULTS_HPP
+#define GRAPHICS_CAMERA_CAMERA_DEFAULTS_HPP
+
+#include <glm/fwd.hpp>
+
+#include <graphics/camera/projection_type.hpp>
+#include <graphics/components/transform.h>
+#include <graphics/input/key.h>
+
+namespace graphics::camera
+{
+
+	struct Defaults
+	{
+		/*--------*/
+		/* Camera */
+		/*--------*/
+		static constexpr ProjectionType type { ProjectionType::Perspective };
+
+		/*-------------------*/
+		/* Camera Controller */
+		/*-------------------*/
+        static constexpr bool       enable_look             { true };
+        static constexpr bool       enable_movement         { true };
+        static constexpr bool       enable_zoom             { true };
+        static constexpr float      look_sensitivity        { 0.002F };
+        static constexpr float      move_speed              { 5.F };
+        static constexpr float      pitch_limit             { 89.F };
+        static constexpr float      zoom_speed              { 0.1F };
+        static constexpr input::Key enable_movement_toggle  { input::Key::Unknown };
+        static constexpr input::Key enable_zoom_toggle      { input::Key::Unknown };
+        static constexpr input::Key move_backward           { input::Key::S };
+        static constexpr input::Key move_down               { input::Key::Q };
+        static constexpr input::Key move_forward            { input::Key::W };
+        static constexpr input::Key move_left               { input::Key::A };
+        static constexpr input::Key look_activation         { input::Key::MouseRight };
+        static constexpr input::Key move_right              { input::Key::D };
+        static constexpr input::Key move_up                 { input::Key::E };
+
+        /*-------------*/
+        /* Clip Planes */
+        /*-------------*/
+        static constexpr float z_near{ 0.1F };
+        static constexpr float z_far{ 1000.F };
+
+        /*-----------*/
+        /* Transform */
+        /*-----------*/
+        static constexpr    glm::vec3              pos         { 0.F, 0.F, 5.F };
+        static constexpr    glm::vec3              rot         { 0.F };
+        static constexpr    glm::vec3              scl         { 1.F };
+        inline static const components::Transform  transform   { pos, rot, scl };
+
+        /*----------*/
+        /* Matrices */
+        /*----------*/
+        static constexpr glm::mat4 view{ 1.F };
+        static constexpr glm::mat4 proj{ 1.F };
+
+        /*-------------*/
+        /* Perspective */
+        /*-------------*/
+        static constexpr float fov{ 60.F };
+
+        /*--------------*/
+        /* Orthographic */
+        /*--------------*/
+        static constexpr float height{ 10.F };
+	};
+
+} // namespace graphics::camera
+
+#endif // GRAPHICS_CAMERA_CAMERA_DEFAULTS_HPP

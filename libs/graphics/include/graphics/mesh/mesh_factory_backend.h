@@ -5,7 +5,7 @@
 #include <string>
 #include <span>
 
-#include <graphics/components/mesh_gl.h>
+#include <graphics/components/mesh_gl.hpp>
 #include <graphics/engine/result.h>
 #include <graphics/mesh/vertex_layout.h>
 

@@ -3,14 +3,14 @@
 namespace graphics::components
 {
 
-    Transform::Transform()
+    Transform::Transform() noexcept
         : position(glm::vec3(1.F))
         , rotation(glm::vec3(1.F))
         , scale(glm::vec3(1.F))
     {
     }
 
-    Transform::Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl)
+    Transform::Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl) noexcept
         : position(pos)
         , rotation(rot)
         , scale(scl)

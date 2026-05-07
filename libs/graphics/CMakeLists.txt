@@ -7,7 +7,7 @@ find_package(OpenGL REQUIRED)
 # Public headers (installed)
 file(GLOB_RECURSE GRAPHICS_HEADERS
     CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/graphics/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/graphics/*.hpp"
 )
 
 # Private sources

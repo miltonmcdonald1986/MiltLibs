@@ -5,7 +5,7 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/components/color.h>
+#include <graphics/components/color.hpp>
 #include <graphics/engine/result.h>
 
 namespace graphics::factories

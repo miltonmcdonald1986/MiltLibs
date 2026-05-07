@@ -8,8 +8,8 @@ namespace graphics::components
 
     struct Transform
     {
-        Transform();
-        Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl);
+        Transform() noexcept;
+        Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl) noexcept;
 
         auto get_position() const -> glm::vec3;
         auto set_position(const glm::vec3& pos) -> void;

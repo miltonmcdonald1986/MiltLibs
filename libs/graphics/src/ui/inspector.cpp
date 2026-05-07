@@ -6,10 +6,10 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <graphics/components/color.h>
-#include <graphics/components/flash.h>
+#include <graphics/components/color.hpp>
+#include <graphics/components/flash.hpp>
 #include <graphics/components/tags.h>
-#include <graphics/components/shake.h>
+#include <graphics/components/shake.hpp>
 #include <graphics/components/transform.h>
 #include <graphics/engine/app_data.h>
 #include <graphics/scene/scene.h>

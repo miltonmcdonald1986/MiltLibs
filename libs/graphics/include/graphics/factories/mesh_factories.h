@@ -4,7 +4,7 @@
 #include <expected>
 #include <string>
 
-#include <graphics/components/mesh_gl.h>
+#include <graphics/components/mesh_gl.hpp>
 #include <graphics/engine/result.h>
 
 namespace graphics::factories

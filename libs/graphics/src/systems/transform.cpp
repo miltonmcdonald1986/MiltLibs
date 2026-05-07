@@ -2,8 +2,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <graphics/components/parent.h>
-#include <graphics/components/shake.h>
+#include <graphics/components/parent.hpp>
+#include <graphics/components/shake.hpp>
 #include <graphics/components/world_matrix.h>
 #include <graphics/systems/animation.h>
 

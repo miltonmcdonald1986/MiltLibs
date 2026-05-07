@@ -1,13 +1,13 @@
-#include <graphics/camera/camera_systems.h>
+#include <graphics/camera/camera_systems.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <graphics/camera/camera.hpp>
 #include <graphics/camera/camera_controller.hpp>
 #include <graphics/camera/camera_controller_state.hpp>
-#include <graphics/camera/camera_matrices.h>
-#include <graphics/camera/orthographic_camera.h>
-#include <graphics/camera/perspective_camera.h>
+#include <graphics/camera/camera_matrices.hpp>
+#include <graphics/camera/orthographic_camera.hpp>
+#include <graphics/camera/perspective_camera.hpp>
 #include <graphics/engine/app_data.h>
 #include <graphics/input/key.h>
 #include <graphics/systems/ecs_observers.h>
@@ -87,7 +87,7 @@ namespace graphics::camera
 		}
 	}
 
-	glm::mat4 compute_projection(const entt::registry& reg, entt::entity cam_ent, float aspect)
+	auto compute_projection(const entt::registry& reg, entt::entity cam_ent, float aspect) -> glm::mat4
 	{
 		if (const Camera* p_camera = reg.try_get<Camera>(cam_ent))
 		{
@@ -118,7 +118,7 @@ namespace graphics::camera
 		return glm::mat4(1.F);
 	}
 
-	void update_camera_system(entt::registry& reg, float dt)
+	void update_camera_system(entt::registry& reg, float time_delta)
 	{
 		engine::AppData* p_data = systems::get_app(reg);
 		if (!p_data)
@@ -135,7 +135,7 @@ namespace graphics::camera
 
 			if (camera_controller.enable_movement)
 			{
-				glm::vec3 total_movement = camera_controller_state.move_delta * camera_controller.move_speed * dt;
+				glm::vec3 total_movement = camera_controller_state.move_delta * camera_controller.move_speed * time_delta;
 				move(transform, reg, cam_ent, total_movement);
 			}
 
