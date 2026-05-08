@@ -1,14 +1,14 @@
-#include <graphics/factories/mesh_factories.h>
+#include <graphics/mesh/mesh_factory.hpp>
 
 #include <format>
 
 #include <graphics/mesh/vertex_layout.h>
-#include <graphics/mesh/mesh_factory_backend.h>
+#include <graphics/mesh/mesh_factory_backend.hpp>
 
-namespace graphics::factories
+namespace graphics::mesh
 {
 
-    engine::Result<components::MeshGL> create_rainbow_triangle_mesh()
+    auto create_rainbow_triangle_mesh() -> mesh::MeshGLResult
 	{
         mesh::VertexLayout PosColorLayout{
             .stride = 6 * sizeof(float), // 3 pos + 3 color
@@ -36,7 +36,7 @@ namespace graphics::factories
 		return *mesh_result;
 	}
 
-    engine::Result<components::MeshGL> create_textured_cube_mesh()
+    auto create_textured_cube_mesh() -> mesh::MeshGLResult
     {
         // Each face has its own quad with UVs
         const float verts[] = {
@@ -107,7 +107,7 @@ namespace graphics::factories
         return mesh::create_mesh_gl_layout(verts, layout, GL_TRIANGLES);
     }
 
-    engine::Result<components::MeshGL> create_textured_quad_mesh()
+    auto create_textured_quad_mesh() -> mesh::MeshGLResult
     {
         // Interleaved vertex data: position (3 floats) + uv (2 floats)
         const float vertices[] =
@@ -149,7 +149,7 @@ namespace graphics::factories
         );
     }
 
-    engine::Result<components::MeshGL> create_textured_triangle_mesh()
+    auto create_textured_triangle_mesh() -> mesh::MeshGLResult
     {
         // Position + UV layout: 3 floats pos, 2 floats uv
         mesh::VertexLayout PosUvLayout{
@@ -170,7 +170,7 @@ namespace graphics::factories
         return mesh::create_mesh_gl_layout(vertices, PosUvLayout, GL_TRIANGLES);
     }
 
-    engine::Result<components::MeshGL> create_triangle_mesh()
+    auto create_triangle_mesh() -> mesh::MeshGLResult
     {
         // 3 vertices, each with 3 floats (x, y, z)
         static constexpr float vertices[] = {

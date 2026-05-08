@@ -1,15 +1,17 @@
-#include <graphics/factories/prefab_factories.h>
+#include <graphics/factories/prefab_factories.hpp>
+
+#include <entt/entity/registry.hpp>
 
 #include <graphics/components/shader.hpp>
-#include <graphics/factories/mesh_factories.h>
-#include <graphics/factories/shader_factories.h>
+#include <graphics/mesh/mesh_factory.hpp>
+#include <graphics/factories/shader_factories.hpp>
 
 namespace graphics::factories
 {
 
-    engine::Result<entt::entity> create_solid_color_triangle_ent(entt::registry& reg, const components::Color& color)
+    auto create_solid_color_triangle_ent(entt::registry& reg, const components::Color& color) -> EntityResult
     {
-        auto mesh_result = create_triangle_mesh();
+        auto mesh_result = mesh::create_triangle_mesh();
 		if (!mesh_result)
             return std::unexpected(mesh_result.error());
 
@@ -21,14 +23,14 @@ namespace graphics::factories
         entt::entity ent_triangle = reg.create();
         reg.emplace<components::Color>(ent_triangle, color);
         reg.emplace<components::Shader>(ent_triangle, color_shader);
-		reg.emplace<components::MeshGL>(ent_triangle, *mesh_result);
+		reg.emplace<mesh::MeshGL>(ent_triangle, *mesh_result);
 
 		return ent_triangle;
     }
 
-	engine::Result<entt::entity> create_rainbow_triangle_ent(entt::registry& reg)
+	auto create_rainbow_triangle_ent(entt::registry& reg) -> EntityResult
 	{
-        auto mesh_result = create_rainbow_triangle_mesh();
+        auto mesh_result = mesh::create_rainbow_triangle_mesh();
         if (!mesh_result)
             return std::unexpected(mesh_result.error());
 
@@ -40,7 +42,7 @@ namespace graphics::factories
 
         entt::entity ent_rainbow_triangle = reg.create();
         reg.emplace<components::Shader>(ent_rainbow_triangle, vertex_color_shader);
-        reg.emplace<components::MeshGL>(ent_rainbow_triangle, *mesh_result);
+        reg.emplace<mesh::MeshGL>(ent_rainbow_triangle, *mesh_result);
 
 		return ent_rainbow_triangle;
 	}

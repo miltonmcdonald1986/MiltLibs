@@ -7,7 +7,8 @@ Checks: >
   portability-*,
   readability-*
   
-HeaderFilterRegex: '^libs/'
+# .clang-tidy configuration
+HeaderFilterRegex: '^(?!.*stb_image\.h).*$'
 
 ExtraArgsBefore:
   - -I./libs/graphics/include

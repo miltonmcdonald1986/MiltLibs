@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
 
-
 project(MiltLibs
     VERSION 0.1.0
     DESCRIPTION "Milton's Libraries"
@@ -103,11 +102,19 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
-target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
+
+# Mark all ImGui headers as SYSTEM
+target_include_directories(imgui
+    SYSTEM PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
 )
-target_link_libraries(imgui PUBLIC glfw gl3w)
+
+# Link dependencies (their include dirs will also be SYSTEM)
+target_link_libraries(imgui PUBLIC
+    glfw
+    gl3w
+)
     
 # Find OpenGL
 find_package(OpenGL REQUIRED)

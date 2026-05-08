@@ -1,4 +1,4 @@
-#include <graphics/factories/texture_factories.h>
+#include <graphics/factories/texture_factories.hpp>
 
 #include <format>
 
@@ -8,7 +8,7 @@
 namespace graphics::factories
 {
 
-    engine::Result<components::Texture> create_texture_from_file(const char* path)
+    auto create_texture_from_file(const char* path) -> TextureResult
     {
         int width = 0, height = 0, channels = 0;
         unsigned char* data = stbi_load(path, &width, &height, &channels, 4);

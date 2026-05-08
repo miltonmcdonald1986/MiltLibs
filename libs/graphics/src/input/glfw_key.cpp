@@ -1,11 +1,11 @@
-#include <graphics/input/key.h>
+#include <graphics/input/glfw_key.hpp>
 
-#include <graphics/platform/gl_includes.h>
+#include <graphics/platform/gl_includes.h> // IWYU pragma: keep
 
-namespace graphics::input 
+namespace graphics::input
 {
 
-    Key translate_glfw_key(int key)
+    auto translate_glfw_key(int key) -> Key
     {
         switch (key)
         {
@@ -143,7 +143,7 @@ namespace graphics::input
         }
     }
 
-    Key translate_glfw_mouse_button(int button)
+    auto translate_glfw_mouse_button(int button) -> Key
     {
         switch (button)
         {
@@ -156,4 +156,4 @@ namespace graphics::input
         }
     }
 
-} // namespace graphics::input
+}

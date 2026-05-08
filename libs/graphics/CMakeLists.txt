@@ -10,10 +10,11 @@ file(GLOB_RECURSE GRAPHICS_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/graphics/*.hpp"
 )
 
-# Private sources
+# Private sources + private headers
 file(GLOB_RECURSE GRAPHICS_SOURCES
     CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
 )
 
 # ----------------------------------------
@@ -36,7 +37,10 @@ target_include_directories(graphics
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    SYSTEM PRIVATE
         ${stb_SOURCE_DIR}
+        ${stb_BINARY_DIR}
 )
 
 # ----------------------------------------
@@ -58,9 +62,10 @@ target_link_libraries(graphics
         EnTT::EnTT
         glfw
         gl3w
-        glm::glm
         imgui
         magic_enum::magic_enum
         OpenGL::GL
         spdlog::spdlog
+    PRIVATE
+        glm::glm
 )

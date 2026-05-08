@@ -5,8 +5,10 @@
 #include <graphics/components/color.hpp>
 #include <graphics/components/flash.hpp>
 #include <graphics/components/shake.hpp>
-#include <graphics/components/transform.h>
-#include <graphics/components/world_matrix.h>
+#include <graphics/components/transform.hpp>
+#include <graphics/components/world_matrix.hpp>
+
+#include <math/convert_mat4.hpp>
 
 namespace graphics::systems
 {
@@ -15,7 +17,12 @@ namespace graphics::systems
     {
         auto view = reg.view<components::Flash>();
         for (auto [e, flash] : view.each())
-            flash.t += dt * flash.speed;
+        {
+            if (flash.enabled)
+                flash.t += dt * flash.speed;
+            else
+                flash.t = 0.F;
+        }
     }
 
     void update_shake(entt::registry& reg, float dt)
@@ -23,18 +30,18 @@ namespace graphics::systems
         auto view = reg.view<components::WorldMatrix, components::Shake>();
         for (auto [e, wm, shake] : view.each())
         {
-            shake.t += dt * shake.speed;
+            shake.time += dt * shake.speed;
 
-            float dx = std::sin(shake.t * 1.3f) * shake.intensity;
-            float dy = std::sin(shake.t * 2.1f) * shake.intensity;
-            float dz = std::sin(shake.t * 3.7f) * shake.intensity;
+            float dx = std::sin(shake.time * 1.3f) * shake.intensity;
+            float dy = std::sin(shake.time * 2.1f) * shake.intensity;
+            float dz = std::sin(shake.time * 3.7f) * shake.intensity;
 
             glm::vec3 offset(dx, dy, dz);
-            wm.value = shake.base_world * glm::translate(glm::mat4(1), offset);
+            wm.value = math::from_glm(math::to_glm(shake.base_world) * glm::translate(glm::mat4(1), offset));
         }
     }
 
-    void update_shake_base_world(entt::registry& reg, entt::entity e, const glm::mat4& world_matrix)
+    void update_shake_base_world(entt::registry& reg, entt::entity e, const math::Mat4& world_matrix)
     {
         if (components::Shake* shake = reg.try_get<components::Shake>(e))
             shake->base_world = world_matrix;
@@ -65,7 +72,7 @@ namespace graphics::systems
             float dz = std::sin(shake.time_left * shake.speed * 3.7f) * current_intensity;
 
             glm::vec3 offset(dx, dy, dz);
-            wm.value = shake.base_world * glm::translate(glm::mat4(1), offset);
+            wm.value = math::from_glm(math::to_glm(shake.base_world) * glm::translate(glm::mat4(1), offset));
         }
     }
 

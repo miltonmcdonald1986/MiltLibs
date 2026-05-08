@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_INPUT_KEY_H
-#define GRAPHICS_INPUT_KEY_H
+#ifndef GRAPHICS_INPUT_KEY_HPP
+#define GRAPHICS_INPUT_KEY_HPP
 
 #include <cstdint>
 
@@ -136,4 +136,4 @@ namespace graphics::input
 
 } // namespace graphics::input
 
-#endif // GRAPHICS_INPUT_KEY_H
+#endif // GRAPHICS_INPUT_KEY_HPP

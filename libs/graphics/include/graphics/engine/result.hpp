@@ -1,19 +1,15 @@
-#ifndef GRAPHICS_ENGINE_RESULT_H
-#define GRAPHICS_ENGINE_RESULT_H
+#ifndef GRAPHICS_ENGINE_RESULT_HPP
+#define GRAPHICS_ENGINE_RESULT_HPP
 
 #include <expected>
 
-#include <graphics/engine/error.h>
+#include <graphics/engine/error.hpp>
 
-#if defined(DEBUG) || defined(_DEBUG)
-    #define CAPTURE_TRACE std::stacktrace::current()
-#else
-    #define CAPTURE_TRACE std::stacktrace{}
-#endif
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
 #define UNEXPECTED(cat, msg) \
     ([&]() { \
-        graphics::engine::ErrorInfo _err{ cat, msg, __FILE__, __LINE__, CAPTURE_TRACE }; \
+        graphics::engine::ErrorInfo _err{ cat, msg, __FILE__, __LINE__ }; \
         graphics::engine::log_error(_err); \
         return std::unexpected(_err); \
     }())
@@ -30,6 +26,8 @@
             return std::unexpected(_r.error()); \
     } while (0)
 
+// NOLINTEND(cppcoreguidelines-macro-usage)
+
 namespace graphics::engine
 {
 
@@ -38,6 +36,6 @@ namespace graphics::engine
 
 	using Status = std::expected<void, ErrorInfo>;
 
-}
+} // namespace graphics::engine
 
-#endif // GRAPHICS_ENGINE_RESULT_H
+#endif // GRAPHICS_ENGINE_RESULT_HPP

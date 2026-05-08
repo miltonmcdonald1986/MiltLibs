@@ -4,7 +4,7 @@
 #include <expected>
 #include <string>
 
-#include <graphics/engine/result.h>
+#include <graphics/engine/result.hpp>
 #include <graphics/platform/window_config.h>
 #include <graphics/platform/window_state.h>
 

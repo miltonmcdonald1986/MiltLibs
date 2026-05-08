@@ -1,4 +1,10 @@
-#include <graphics/input/input_systems.h>
+#include <graphics/input/input_systems.hpp>
+
+#include <graphics/camera/camera_controller.hpp>
+#include <graphics/engine/app_data.hpp>
+#include <graphics/systems/ecs_observers.h>
+
+#include <camera/camera_controller_state.hpp>
 
 namespace graphics::input
 {

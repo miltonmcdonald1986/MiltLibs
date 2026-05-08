@@ -1,4 +1,6 @@
-#include <graphics/engine/error.h>
+#include <graphics/engine/error.hpp>
+
+#include <magic_enum/magic_enum.hpp>
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/ringbuffer_sink.h>

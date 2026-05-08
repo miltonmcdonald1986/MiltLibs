@@ -4,17 +4,20 @@
 
 #include <graphics/camera/camera.hpp>
 #include <graphics/camera/camera_controller.hpp>
-#include <graphics/camera/camera_controller_state.hpp>
 #include <graphics/camera/camera_matrices.hpp>
 #include <graphics/camera/orthographic_camera.hpp>
 #include <graphics/camera/perspective_camera.hpp>
-#include <graphics/engine/app_data.h>
-#include <graphics/input/key.h>
+#include <graphics/engine/app_data.hpp>
+#include <graphics/input/key.hpp>
 #include <graphics/systems/ecs_observers.h>
-#include <graphics/components/transform.h>
-#include <graphics/components/world_matrix.h>
+#include <graphics/components/transform.hpp>
+#include <graphics/components/world_matrix.hpp>
 #include <graphics/platform/window.h>
-#include <graphics/utils/math_utils.h>
+
+#include <camera/camera_controller_state.hpp>
+#include <math/convert_mat4.hpp>
+#include <math/convert_vec3.hpp>
+#include <utils/math_utils.h>
 
 namespace graphics::camera
 {
@@ -22,24 +25,24 @@ namespace graphics::camera
 	glm::vec3 get_forward(const entt::registry& reg, entt::entity e)
 	{
 		const auto& wm = reg.get<components::WorldMatrix>(e);
-		return -glm::vec3(wm.value[2]);
+		return -glm::vec3(math::to_glm(wm.value)[2]);
 	}
 
 	glm::vec3 get_right(const entt::registry& reg, entt::entity e)
 	{
 		const auto& wm = reg.get<components::WorldMatrix>(e);
-		return glm::vec3(wm.value[0]);
+		return glm::vec3(math::to_glm(wm.value)[0]);
 	}
 
 	glm::vec3 get_up(const entt::registry& reg, entt::entity e)
 	{
 		const auto& wm = reg.get<components::WorldMatrix>(e);
-		return glm::vec3(wm.value[1]);
+		return glm::vec3(math::to_glm(wm.value)[1]);
 	}
 
 	void look(components::Transform& t, float dx, float dy, float sensitivity, float pitch_limit)
 	{
-		glm::vec3 rot = t.get_rotation();
+		glm::vec3 rot = math::to_glm(t.get_rotation());
 
 		rot.y -= dx * sensitivity; // yaw
 		rot.x += dy * sensitivity; // pitch
@@ -47,14 +50,14 @@ namespace graphics::camera
 		const float pitch_limit_rads = glm::radians(pitch_limit);
 		rot.x = glm::clamp(rot.x, -pitch_limit_rads, pitch_limit_rads);
 
-		t.set_rotation(rot);
+		t.set_rotation(math::from_glm(rot));
 	}
 
 	void move(components::Transform& t, const entt::registry& reg, entt::entity cam, const glm::vec3& amount)
 	{
-		t.set_position(t.get_position() + get_right(reg, cam) * amount.x);
-		t.set_position(t.get_position() + get_up(reg, cam) * amount.y);
-		t.set_position(t.get_position() + get_forward(reg, cam) * amount.z);
+		t.set_position(math::from_glm(math::to_glm(t.get_position()) + get_right(reg, cam) * amount.x));
+		t.set_position(math::from_glm(math::to_glm(t.get_position()) + get_up(reg, cam) * amount.y));
+		t.set_position(math::from_glm(math::to_glm(t.get_position()) + get_forward(reg, cam) * amount.z));
 	}
 
 	void zoom_scroll(entt::registry& reg, entt::entity cam_ent, float scroll, float speed)
@@ -140,10 +143,10 @@ namespace graphics::camera
 			}
 
 			auto& camWM = reg.get<components::WorldMatrix>(cam_ent);
-			auto worldNoScale = utils::remove_scale_from_matrix(camWM.value);
+			auto worldNoScale = utils::remove_scale_from_matrix(math::to_glm(camWM.value));
 
-			camera_matrices.view = glm::inverse(worldNoScale);
-			camera_matrices.projection = compute_projection(reg, cam_ent, p_data->p_window->window_state.aspect());
+			camera_matrices.view = math::from_glm(glm::inverse(worldNoScale));
+			camera_matrices.projection = math::from_glm(compute_projection(reg, cam_ent, p_data->p_window->window_state.aspect()));
 		}
 	}
 

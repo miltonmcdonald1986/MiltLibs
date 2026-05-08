@@ -8,8 +8,9 @@ namespace graphics::components
 
     struct Flash 
     {
-        float speed { FlashDefaults::speed };
-        float t     { 0.F }; // internal time accumulator
+        bool  enabled   { FlashDefaults::enabled };
+        float speed     { FlashDefaults::speed };
+        float t         { 0.F }; // internal time accumulator
     };
 
 } // namespace graphics::components

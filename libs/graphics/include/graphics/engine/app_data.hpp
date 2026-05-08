@@ -1,7 +1,7 @@
-#ifndef GRAPHICS_ENGINE_APP_DATA_H
-#define GRAPHICS_ENGINE_APP_DATA_H
+#ifndef GRAPHICS_ENGINE_APP_DATA_HPP
+#define GRAPHICS_ENGINE_APP_DATA_HPP
 
-#include <graphics/input/input_state.h>
+#include <graphics/input/input_state.hpp>
 #include <graphics/platform/time.h>
 
 // Forward declarations
@@ -21,6 +21,6 @@ namespace graphics::engine
 		scene::Scene* p_active_scene{ nullptr };
 	};
 
-}
+} // namespace graphics::engine
 
-#endif // GRAPHICS_ENGINE_APP_DATA_H
+#endif // GRAPHICS_ENGINE_APP_DATA_HPP

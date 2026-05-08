@@ -3,14 +3,16 @@
 #include <graphics/camera/camera_factory.hpp>
 #include <graphics/components/color.hpp>
 #include <graphics/components/flash.hpp>
-#include <graphics/components/mesh_gl.hpp>
 #include <graphics/components/shader.hpp>
-#include <graphics/components/texture.h>
-#include <graphics/engine/app_data.h>
-#include <graphics/engine/engine.h>
-#include <graphics/factories/mesh_factories.h>
-#include <graphics/factories/shader_factories.h>
-#include <graphics/factories/texture_factories.h>
+#include <graphics/components/tags.hpp>
+#include <graphics/components/texture.hpp>
+#include <graphics/engine/app_data.hpp>
+#include <graphics/engine/engine.hpp>
+#include <graphics/factories/shader_factories.hpp>
+#include <graphics/factories/texture_factories.hpp>
+#include <graphics/math/vec3.hpp>
+#include <graphics/mesh/mesh_factory.hpp>
+#include <graphics/mesh/mesh_gl.hpp>
 #include <graphics/scene/scene.h>
 #include <graphics/ui/entity_list.h>
 #include <graphics/ui/inspector.h>
@@ -42,14 +44,14 @@ auto init(graphics::engine::AppData* p_data) -> bool
     for (int i = 0; i < num_cubes; i++) {
         entt::entity ent = reg.create();
         reg.emplace<graphics::components::Transform>(ent,
-            glm::vec3(i * 2.0f, 0, -5.0f),
-            glm::vec3(0, 0, 0),
-            glm::vec3(1, 1, 1)
-        );
+            graphics::math::Vec3{ i * 2.F, 0.F, -5.F },
+            graphics::math::create_vec3_fill(0.F),
+            graphics::math::create_vec3_fill(1.F));
         reg.emplace<graphics::components::Color>(ent, graphics::components::Color{});
         reg.emplace<graphics::components::Flash>(ent, graphics::components::Flash{});
-        reg.emplace<graphics::components::MeshGL>(ent, *graphics::factories::create_textured_cube_mesh());
+        reg.emplace<graphics::mesh::MeshGL>(ent, *graphics::mesh::create_textured_cube_mesh());
         reg.emplace<graphics::components::Shader>(ent, *graphics::factories::create_textured_color_mvp_shader());
+        reg.emplace<graphics::components::Shakeable>(ent);
         if (tex_result)
             reg.emplace<graphics::components::Texture>(ent, *tex_result);
     }
@@ -57,6 +59,7 @@ auto init(graphics::engine::AppData* p_data) -> bool
     entt::entity camera = reg.create();
     graphics::camera::CameraConfig camera_config{};
     graphics::camera::add_camera(reg, camera, camera_config);
+    reg.emplace<graphics::components::Shakeable>(camera);
     
     return true;
 }

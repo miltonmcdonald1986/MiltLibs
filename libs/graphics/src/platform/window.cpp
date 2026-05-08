@@ -70,6 +70,7 @@ namespace graphics::platform
 
         glfwSetWindowUserPointer(window_state.pHandle, p_app);
 
+        glfwSetCharCallback(window_state.pHandle, glfw_char_callback);
         glfwSetCursorPosCallback(window_state.pHandle, glfw_cursor_pos_callback);
         glfwSetFramebufferSizeCallback(window_state.pHandle, glfw_framebuffer_size_callback);
         glfwSetKeyCallback(window_state.pHandle, glfw_key_callback);

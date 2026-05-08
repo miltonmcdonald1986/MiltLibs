@@ -2,8 +2,8 @@
 
 #include <entt/entt.hpp>
 
-#include <graphics/components/world_matrix.h>
-#include <graphics/engine/app_data.h>
+#include <graphics/components/world_matrix.hpp>
+#include <graphics/engine/app_data.hpp>
 #include <graphics/scene/scene.h>
 
 namespace graphics::systems
@@ -33,7 +33,7 @@ namespace graphics::systems
             reg.emplace<components::WorldMatrix>(e);
 
         // 4. Mark dirty so the TransformSystem recomputes world matrix
-        reg.get<components::Transform>(e).dirty = true;
+        reg.get<components::Transform>(e).set_dirty_flag(true);
     }
 
 

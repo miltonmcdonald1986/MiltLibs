@@ -1,11 +1,11 @@
 #ifndef GRAPHICS_CAMERA_CAMERA_DEFAULTS_HPP
 #define GRAPHICS_CAMERA_CAMERA_DEFAULTS_HPP
 
-#include <glm/fwd.hpp>
-
 #include <graphics/camera/projection_type.hpp>
-#include <graphics/components/transform.h>
-#include <graphics/input/key.h>
+#include <graphics/components/transform.hpp>
+#include <graphics/input/key.hpp>
+#include <graphics/math/mat4.hpp>
+#include <graphics/math/vec3.hpp>
 
 namespace graphics::camera
 {
@@ -40,22 +40,22 @@ namespace graphics::camera
         /*-------------*/
         /* Clip Planes */
         /*-------------*/
-        static constexpr float z_near{ 0.1F };
-        static constexpr float z_far{ 1000.F };
+        static constexpr float z_near   { 0.1F };
+        static constexpr float z_far    { 1000.F };
 
         /*-----------*/
         /* Transform */
         /*-----------*/
-        static constexpr    glm::vec3              pos         { 0.F, 0.F, 5.F };
-        static constexpr    glm::vec3              rot         { 0.F };
-        static constexpr    glm::vec3              scl         { 1.F };
-        inline static const components::Transform  transform   { pos, rot, scl };
+        static constexpr    math::Vec3              pos         { 0.F, 0.F, 5.F };
+        static constexpr    math::Vec3              rot         { 0.F, 0.F, 0.F };
+        static constexpr    math::Vec3              scl         { 1.F, 1.F, 1.F };
+        inline static const components::Transform   transform   { pos, rot, scl };
 
         /*----------*/
         /* Matrices */
         /*----------*/
-        static constexpr glm::mat4 view{ 1.F };
-        static constexpr glm::mat4 proj{ 1.F };
+        inline static const math::Mat4 view{ math::create_mat4_identity() };
+        inline static const math::Mat4 proj{ math::create_mat4_identity() };
 
         /*-------------*/
         /* Perspective */

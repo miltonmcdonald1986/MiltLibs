@@ -1,14 +1,14 @@
-#include <graphics/factories/shader_factories.h>
+#include <graphics/factories/shader_factories.hpp>
 
 #include <format>
 #include <fstream>
 
-#include <graphics/engine/result.h>
+#include <graphics/engine/result.hpp>
 
 namespace graphics::factories
 {
 
-	engine::Result<GLuint> compile_shader(GLenum shader_type, const char* shader_source)
+	auto compile_shader(GLenum shader_type, const char* shader_source) -> ShaderResult
 	{
 		GLuint shader = glCreateShader(shader_type);
 		glShaderSource(shader, 1, &shader_source, NULL);
@@ -28,7 +28,7 @@ namespace graphics::factories
 		return shader;
 	}
 
-	engine::Result<GLuint> link_program(GLuint vertex_shader, GLuint fragment_shader)
+	auto link_program(GLuint vertex_shader, GLuint fragment_shader) -> ShaderResult
 	{
 		GLuint shader_program = glCreateProgram();
 		glAttachShader(shader_program, vertex_shader);
@@ -44,7 +44,7 @@ namespace graphics::factories
 		return shader_program;
 	}
 
-	engine::Result<GLuint> create_program_from_sources(const char* vertex_shader_source, const char* fragment_shader_source)
+	auto create_program_from_sources(const char* vertex_shader_source, const char* fragment_shader_source) -> ShaderResult
 	{
 		struct ShaderHandle
 		{
@@ -75,7 +75,7 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	engine::Result<GLuint> create_basic_shader()
+	auto create_basic_shader() -> ShaderResult
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"
@@ -98,7 +98,7 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	engine::Result<GLuint> create_color_shader()
+	auto create_color_shader() -> ShaderResult
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"
@@ -122,7 +122,7 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	engine::Result<GLuint> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path)
+	auto create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path) -> ShaderResult
 	{
 		auto load_text_file = [](const std::filesystem::path & path) -> engine::Result<std::string>
 		{
@@ -149,7 +149,7 @@ namespace graphics::factories
 		return create_program_from_sources(vertex_src_result->c_str(), fragment_src_result->c_str());
 	}
 
-	engine::Result<GLuint> create_textured_color_mvp_shader()
+	auto create_textured_color_mvp_shader() -> ShaderResult
 	{
 		const char* vs = R"(
         #version 330 core
@@ -188,7 +188,7 @@ namespace graphics::factories
 		return create_program_from_sources(vs, fs);
 	}
 
-	engine::Result<GLuint> create_textured_mvp_shader()
+	auto create_textured_mvp_shader() -> ShaderResult
 	{
 		const char* vertex_src = R"(
         #version 330 core
@@ -224,7 +224,7 @@ namespace graphics::factories
 		return create_program_from_sources(vertex_src, fragment_src);
 	}
 
-	engine::Result<GLuint> create_textured_shader()
+	auto create_textured_shader() -> ShaderResult
 	{
 		static const char* vertex_src = R"(
         #version 330 core
@@ -259,7 +259,7 @@ namespace graphics::factories
 	}
 
 
-	engine::Result<GLuint> create_vertex_color_shader()
+	auto create_vertex_color_shader() -> ShaderResult
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"

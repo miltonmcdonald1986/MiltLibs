@@ -11,11 +11,13 @@
 #include <graphics/components/color.hpp>
 #include <graphics/components/flash.hpp>
 #include <graphics/components/shake.hpp>
-#include <graphics/components/tags.h>
-#include <graphics/components/transform.h>
-#include <graphics/engine/app_data.h>
+#include <graphics/components/tags.hpp>
+#include <graphics/components/transform.hpp>
+#include <graphics/engine/app_data.hpp>
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
+
+#include <math/convert_vec4.hpp>
 
 namespace graphics::ui
 {
@@ -114,9 +116,12 @@ namespace graphics::ui
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Entity Colors");
         auto view = reg.view<components::Color>();
-        for (auto [entity, color_component] : view.each()) {
+        for (auto [entity, color_component] : view.each()) 
+        {
             std::string label = "entity " + std::to_string((uint32_t)entity);
-            ImGui::ColorEdit4(label.c_str(), glm::value_ptr(color_component.rgba));
+            glm::vec4 glm_rgba = math::to_glm(color_component.rgba);
+            ImGui::ColorEdit4(label.c_str(), glm::value_ptr(glm_rgba));
+            color_component.rgba = math::from_glm(glm_rgba);
         }
         ImGui::End();
     }

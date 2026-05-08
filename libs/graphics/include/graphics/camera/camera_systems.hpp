@@ -3,12 +3,9 @@
 
 #include <entt/fwd.hpp>
 
-#include <glm/fwd.hpp>
-
 namespace graphics::camera
 {
 
-    auto compute_projection(const entt::registry& reg, entt::entity cam_ent, float aspect) -> glm::mat4;
     void update_camera_system(entt::registry& reg, float time_delta);
 
 }

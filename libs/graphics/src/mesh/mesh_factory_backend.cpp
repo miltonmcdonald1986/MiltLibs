@@ -1,13 +1,13 @@
-#include <graphics/mesh/mesh_factory_backend.h>
+#include <graphics/mesh/mesh_factory_backend.hpp>
 
-#include <graphics/engine/error.h>
+#include <graphics/engine/error.hpp>
 
 namespace graphics::mesh
 {
 
-    engine::Result<components::MeshGL> create_indexed_mesh_gl_layout(std::span<const float> vertices, std::span<const unsigned int> indices, const VertexLayout& layout, GLenum primitive)
+    auto create_indexed_mesh_gl_layout(Vertices vertices, Indices indices, const VertexLayout& layout, GLenum primitive) -> MeshGLResult
     {
-        components::MeshGL mesh{};
+        MeshGL mesh{};
         mesh.primitive = primitive;
         mesh.indexCount = static_cast<GLsizei>(indices.size());
 
@@ -50,7 +50,7 @@ namespace graphics::mesh
         return mesh;
     }
 
-    engine::Result<components::MeshGL> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
+    auto create_indexed_mesh_gl_pos_only(Vertices vertices, Indices indices, GLint componentsPerVertex, GLenum primitive) -> MeshGLResult
     {
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);
@@ -64,9 +64,9 @@ namespace graphics::mesh
         return create_indexed_mesh_gl_layout(vertices, indices, layout, primitive);
     }
 
-    engine::Result<components::MeshGL> create_mesh_gl_layout(std::span<const float> vertices, const VertexLayout& layout, GLenum primitive)
+    auto create_mesh_gl_layout(std::span<const float> vertices, const VertexLayout& layout, GLenum primitive) -> MeshGLResult
     {
-        components::MeshGL mesh{};
+        MeshGL mesh{};
         mesh.primitive = primitive;
 
         // Compute vertex count
@@ -113,7 +113,7 @@ namespace graphics::mesh
         return mesh;
     }
 
-    engine::Result<components::MeshGL> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
+    auto create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive) -> MeshGLResult
     {
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);

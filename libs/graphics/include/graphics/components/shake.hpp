@@ -1,28 +1,27 @@
 #ifndef GRAPHICS_COMPONENTS_SHAKE_HPP
 #define GRAPHICS_COMPONENTS_SHAKE_HPP
 
-#include <glm/ext/matrix_float4x4.hpp>
+#include <graphics/components/component_defaults.hpp>
+#include <graphics/math/mat4.hpp>
 
 namespace graphics::components
 {
 
     struct Shake
     {
-        float t = 0.0;
-        float intensity = 0.02f; // how strong the shake is
-        float speed = 60.0f;     // how fast it jitters
-		
-        glm::mat4 base_world{ 1.F }; // the anchor, should be set to the entity's original world matrix and never modified by hand after that
+        float       time        { 0.F };
+        float       intensity   { ShakeDefaults::intensity };
+        float       speed       { ShakeDefaults::speed };		
+        math::Mat4  base_world  { 1.F };
     };
 
     struct ShakeOnce
     {
-        float duration = 0.15f;   // total shake time
-        float time_left = 0.15f;  // countdown
-        float intensity = 0.05f;  // shake strength
-        float speed = 60.0f;      // jitter speed
-        
-		glm::mat4 base_world{ 1.F };  // the anchor, should be set to the entity's original world matrix and never modified by hand after that
+        float       duration    { ShakeOnceDefaults::duration };
+        float       time_left   { ShakeOnceDefaults::duration };
+        float       intensity   { ShakeDefaults::intensity };
+        float       speed       { ShakeDefaults::speed };
+		math::Mat4  base_world  { 1.F };
     };
 
 } // namespace graphics::components

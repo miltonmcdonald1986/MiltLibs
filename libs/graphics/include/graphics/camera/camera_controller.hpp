@@ -2,7 +2,7 @@
 #define GRAPHICS_CAMERA_CAMERA_CONTROLLER_HPP
 
 #include <graphics/camera/camera_defaults.hpp>
-#include <graphics/input/key.h>
+#include <graphics/input/key.hpp>
 
 namespace graphics::camera
 {

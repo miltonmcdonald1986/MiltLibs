@@ -8,12 +8,16 @@
 
 #include <graphics/components/color.hpp>
 #include <graphics/components/flash.hpp>
-#include <graphics/components/tags.h>
+#include <graphics/components/tags.hpp>
 #include <graphics/components/shake.hpp>
-#include <graphics/components/transform.h>
-#include <graphics/engine/app_data.h>
+#include <graphics/components/transform.hpp>
+#include <graphics/engine/app_data.hpp>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/ecs_observers.h>
+
+#include <math/convert_mat4.hpp>
+#include <math/convert_vec3.hpp>
+#include <math/convert_vec4.hpp>
 
 namespace graphics::ui
 {
@@ -35,7 +39,9 @@ namespace graphics::ui
         {
             if (ImGui::CollapsingHeader("Color"))
             {
-                ImGui::ColorEdit4("Base", glm::value_ptr(color->rgba));
+                glm::vec4 glm_rgba = math::to_glm(color->rgba);
+                ImGui::ColorEdit4("Base", glm::value_ptr(glm_rgba));
+                color->rgba = math::from_glm(glm_rgba);
             }
         }
     }
@@ -46,11 +52,17 @@ namespace graphics::ui
         {
             if (ImGui::CollapsingHeader("Flash"))
             {
-                ImGui::SliderFloat("Speed", &flash->speed, 0.1f, 10.0f);
+                ImGui::Checkbox("Enabled##flash_enabled", &flash->enabled);
+
+                ImGui::BeginDisabled(!flash->enabled);
+                ImGui::SliderFloat("Speed##flash_speed", &flash->speed, 0.1f, 10.0f);
+                ImGui::EndDisabled();
+
                 ImGui::Text("t = %.3f", flash->t);
             }
         }
     }
+
 
     void draw_shake_inspector(entt::registry& reg, entt::entity e)
     {
@@ -83,7 +95,7 @@ namespace graphics::ui
                 if (shakeOnce)  shakeOnce->intensity = intensity;
             }
 
-            if (ImGui::SliderFloat("Speed", &speed, 0.0f, 200.0f, "%.1f"))
+            if (ImGui::SliderFloat("Speed##shake_speed", &speed, 0.0f, 200.0f, "%.1f"))
             {
                 if (shake)      shake->speed = speed;
                 if (shakeOnce)  shakeOnce->speed = speed;
@@ -100,10 +112,11 @@ namespace graphics::ui
                 ImGui::Text("Base World (anchor)");
 
                 // Extract translation from base_world
+                glm::mat4 base_world_glm = math::to_glm(shake->base_world);
                 glm::vec3 bw_pos = glm::vec3(
-                    shake->base_world[3][0],
-                    shake->base_world[3][1],
-                    shake->base_world[3][2]
+                    base_world_glm[3][0],
+                    base_world_glm[3][1],
+                    base_world_glm[3][2]
                 );
 
                 ImGui::Text("base_world pos: (%.3f, %.3f, %.3f)",
@@ -118,7 +131,7 @@ namespace graphics::ui
                 if (ImGui::Button("Remove Continuous Shake"))
                 {
                     // Snap back to base (TransformSystem will recompute world)
-                    transform.dirty = true;
+                    transform.set_dirty_flag(true);
                     reg.remove<components::Shake>(e);
                 }
 
@@ -153,7 +166,7 @@ namespace graphics::ui
 
                 if (ImGui::Button("Cancel Shake Once"))
                 {
-                    transform.dirty = true;
+                    transform.set_dirty_flag(true);
                     reg.remove<components::ShakeOnce>(e);
                 }
             }
@@ -209,28 +222,30 @@ namespace graphics::ui
 
             if (auto* shake = reg.try_get<components::Shake>(e))
             {
+                glm::mat4 base_world_glm = math::to_glm(shake->base_world);
                 displayPos = glm::vec3(
-                    shake->base_world[3][0],
-                    shake->base_world[3][1],
-                    shake->base_world[3][2]
+                    base_world_glm[3][0],
+                    base_world_glm[3][1],
+                    base_world_glm[3][2]
                 );
             }
             else if (auto* shakeOnce = reg.try_get<components::ShakeOnce>(e))
             {
+                glm::mat4 base_world_glm = math::to_glm(shakeOnce->base_world);
                 displayPos = glm::vec3(
-                    shakeOnce->base_world[3][0],
-                    shakeOnce->base_world[3][1],
-                    shakeOnce->base_world[3][2]
+                    base_world_glm[3][0],
+                    base_world_glm[3][1],
+                    base_world_glm[3][2]
                 );
             }
             else
             {
-                displayPos = transform->get_position();
+                displayPos = math::to_glm(transform->get_position());
             }
 
             // Editable field
             if (ImGui::InputFloat3("##pos", &displayPos.x, "%.3f"))
-                transform->set_position(displayPos);
+                transform->set_position(math::from_glm(displayPos));
 
             ImGui::SameLine();
             if (ImGui::Button("Reset") && initial)
@@ -241,14 +256,14 @@ namespace graphics::ui
             // ============================================================
             // Rotation (degrees UI, radians internal)
             // ============================================================
-            glm::vec3 rotDeg = glm::degrees(transform->get_rotation());
+            glm::vec3 rotDeg = glm::degrees(math::to_glm(transform->get_rotation()));
 
             ImGui::Text("Rotation");
             ImGui::SameLine(120);
             ImGui::PushID("rot");
 
             if (ImGui::InputFloat3("##rot", &rotDeg.x, "%.1f"))
-                transform->set_rotation(glm::radians(rotDeg));
+                transform->set_rotation(math::from_glm(glm::radians(rotDeg)));
 
             ImGui::SameLine();
             if (ImGui::Button("Reset") && initial)
@@ -264,7 +279,7 @@ namespace graphics::ui
             ImGui::PushID("scale");
 
             auto scale = transform->get_scale();
-            if (ImGui::InputFloat3("##scale", &scale.x, "%.3f"))
+            if (ImGui::InputFloat3("##scale", &scale.v[0], "%.3f"))
                 transform->set_scale(scale);
 
             ImGui::SameLine();

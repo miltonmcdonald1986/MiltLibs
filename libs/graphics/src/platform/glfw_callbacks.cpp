@@ -2,12 +2,17 @@
 
 #include <imgui_impl_glfw.h>
 
-#include <graphics/engine/app_data.h>
-#include <graphics/input/glfw_key.h>
+#include <graphics/engine/app_data.hpp>
+#include <graphics/input/glfw_key.hpp>
 #include <graphics/platform/window.h>
 
 namespace graphics::platform
 {
+
+    void glfw_char_callback(GLFWwindow* window, unsigned int codepoint)
+    {
+        ImGui_ImplGlfw_CharCallback(window, codepoint);
+    }
 
     void glfw_cursor_pos_callback(GLFWwindow* p_window, double x, double y) 
     {

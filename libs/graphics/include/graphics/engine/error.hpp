@@ -1,11 +1,10 @@
-#ifndef GRAPHICS_ENGINE_ERROR_INFO_H
-#define GRAPHICS_ENGINE_ERROR_INFO_H
+#ifndef GRAPHICS_ENGINE_ERROR_INFO_HPP
+#define GRAPHICS_ENGINE_ERROR_INFO_HPP
 
-#include <stacktrace>
+#include <memory>
+#include <string>
 
-#include <magic_enum/magic_enum.hpp>
-
-#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 namespace graphics::engine
 {
@@ -25,15 +24,14 @@ namespace graphics::engine
     struct ErrorInfo
     {
         ErrorCategory category{ ErrorCategory::Unknown };
-        std::string message{};
-        std::string file{};
+        std::string message;
+        std::string file;
         int line{ 0 };
-        std::stacktrace trace{}; // empty unless captured
     };
 
     auto log_error(const ErrorInfo& err) -> void;
     auto logger() -> Logger&;
 
-}
+} // namespace graphics::engine
 
-#endif // GRAPHICS_ENGINE_ERROR_INFO_H
+#endif // GRAPHICS_ENGINE_ERROR_INFO_HPP

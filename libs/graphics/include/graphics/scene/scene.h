@@ -2,7 +2,7 @@
 #define GRAPHICS_SCENE_SCENE_H
 
 #include <entt/entt.hpp>
-#include <graphics/components/transform.h>
+#include <graphics/components/transform.hpp>
 
 namespace graphics::scene
 {

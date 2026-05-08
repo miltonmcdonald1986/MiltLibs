@@ -1,9 +1,9 @@
-#include <graphics/engine/engine.h>
+#include <graphics/engine/engine.hpp>
 
 #include <graphics/camera/camera_systems.hpp>
-#include <graphics/engine/app_data.h>
-#include <graphics/engine/result.h>
-#include <graphics/input/input_systems.h>
+#include <graphics/engine/app_data.hpp>
+#include <graphics/engine/result.hpp>
+#include <graphics/input/input_systems.hpp>
 #include <graphics/platform/window.h>
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
@@ -92,10 +92,12 @@ namespace graphics::engine
             systems::update_transform_system(p_scene->reg);
 
             // ENGINE SYSTEMS (run-time effects)
-            camera::update_camera_system(p_scene->reg, data.time.dt);
             systems::update_flash(p_scene->reg, data.time.dt);
             systems::update_shake(p_scene->reg, data.time.dt);
             systems::update_shake_once(p_scene->reg, data.time.dt);
+
+            // Update the camera after all transformational systems have gone.
+            camera::update_camera_system(p_scene->reg, data.time.dt);
 
             if (auto result = p_renderer->update(p_scene); !result)
                 return result;
@@ -106,7 +108,7 @@ namespace graphics::engine
         return {};
     }
 	
-    Status run(InitFn init_fn, UpdateFn update_fn)
+    auto run(InitFn init_fn, UpdateFn update_fn) -> Status
     {
         AppData data{};
 

@@ -4,8 +4,8 @@
 
 #include <imgui.h>
 
-#include <graphics/components/tags.h>
-#include <graphics/engine/app_data.h>
+#include <graphics/components/tags.hpp>
+#include <graphics/engine/app_data.hpp>
 #include <graphics/scene/scene.h>
 
 namespace graphics::ui

@@ -4,8 +4,12 @@
 
 #include <graphics/components/parent.hpp>
 #include <graphics/components/shake.hpp>
-#include <graphics/components/world_matrix.h>
+#include <graphics/components/transform.hpp>
+#include <graphics/components/world_matrix.hpp>
 #include <graphics/systems/animation.h>
+
+#include <math/convert_mat4.hpp>
+#include <math/convert_vec3.hpp>
 
 namespace graphics::systems
 {
@@ -14,14 +18,14 @@ namespace graphics::systems
     {
         glm::mat4 m = glm::mat4(1.0f);
 
-        m = glm::translate(m, t.get_position());
+        m = glm::translate(m, math::to_glm(t.get_position()));
 
-        auto rot = t.get_rotation();
+        auto rot = math::to_glm(t.get_rotation());
         m = glm::rotate(m, rot.x, glm::vec3(1, 0, 0));
         m = glm::rotate(m, rot.y, glm::vec3(0, 1, 0));
         m = glm::rotate(m, rot.z, glm::vec3(0, 0, 1));
 
-        m = glm::scale(m, t.get_scale());
+        m = glm::scale(m, math::to_glm(t.get_scale()));
 
         return m;
     }
@@ -33,6 +37,60 @@ namespace graphics::systems
         for (auto [e, transform, world_matrix] : view.each())
         {
             update_shake_base_world(reg, e, world_matrix.value);
+        }
+    }
+
+    void update_world_recursive(
+        entt::registry& reg,
+        entt::entity e,
+        const glm::mat4& parentWorld,
+        bool parent_was_dirty,
+        const std::unordered_map<entt::entity, std::vector<entt::entity> >& children)
+    {
+        auto& t = reg.get<components::Transform>(e);
+        auto& wm = reg.get<components::WorldMatrix>(e);
+
+        // Shake forces world recompute
+        bool force = reg.any_of<components::Shake, components::ShakeOnce>(e);
+
+        // Always compute local TRS (cheap + required for correctness)
+        glm::mat4 local = compute_model_matrix(t);
+
+        // Determine if this entity must update its world matrix
+        bool must_update_world =
+            t.get_dirty_flag() || parent_was_dirty || force;
+
+        if (must_update_world)
+        {
+            // Remove scale from parent before applying child local transform
+            glm::mat4 parentNoScale = parentWorld;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                glm::vec3 v = glm::vec3(parentNoScale[i]);     // extract XYZ
+                v = glm::normalize(v);                         // normalize
+                parentNoScale[i] = glm::vec4(v, parentNoScale[i].w); // restore W
+            }
+
+            wm.value = math::from_glm(parentNoScale * local);
+        }
+
+        // Clear dirty flag
+        t.set_dirty_flag(false);
+
+        // Recurse into children
+        if (auto it = children.find(e); it != children.end())
+        {
+            for (entt::entity child : it->second)
+            {
+                update_world_recursive(
+                    reg,
+                    child,
+                    math::to_glm(wm.value),
+                    must_update_world,   // propagate dirty downward
+                    children
+                );
+            }
         }
     }
 
@@ -63,60 +121,6 @@ namespace graphics::systems
         }
 
         update_transform_dependents(reg);
-    }
-
-    void update_world_recursive(
-        entt::registry& reg,
-        entt::entity e,
-        const glm::mat4& parentWorld,
-        bool parent_was_dirty,
-        const std::unordered_map<entt::entity, std::vector<entt::entity> >& children)
-    {
-        auto& t = reg.get<components::Transform>(e);
-        auto& wm = reg.get<components::WorldMatrix>(e);
-
-        // Shake forces world recompute
-        bool force = reg.any_of<components::Shake, components::ShakeOnce>(e);
-
-        // Always compute local TRS (cheap + required for correctness)
-        glm::mat4 local = compute_model_matrix(t);
-
-        // Determine if this entity must update its world matrix
-        bool must_update_world =
-            t.dirty || parent_was_dirty || force;
-
-        if (must_update_world)
-        {
-            // Remove scale from parent before applying child local transform
-            glm::mat4 parentNoScale = parentWorld;
-
-            for (int i = 0; i < 3; ++i)
-            {
-                glm::vec3 v = glm::vec3(parentNoScale[i]);     // extract XYZ
-                v = glm::normalize(v);                         // normalize
-                parentNoScale[i] = glm::vec4(v, parentNoScale[i].w); // restore W
-            }
-
-            wm.value = parentNoScale * local;
-        }
-
-        // Clear dirty flag
-        t.dirty = false;
-
-        // Recurse into children
-        if (auto it = children.find(e); it != children.end())
-        {
-            for (entt::entity child : it->second)
-            {
-                update_world_recursive(
-                    reg,
-                    child,
-                    wm.value,
-                    must_update_world,   // propagate dirty downward
-                    children
-                );
-            }
-        }
     }
 
 }

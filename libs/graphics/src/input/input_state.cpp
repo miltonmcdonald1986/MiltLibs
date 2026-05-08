@@ -1,4 +1,4 @@
-#include <graphics/input/input_state.h>
+#include <graphics/input/input_state.hpp>
 
 namespace graphics::input
 {

@@ -8,7 +8,7 @@
 #include <graphics/camera/camera_defaults.hpp>
 #include <graphics/camera/orthographic_camera.hpp>
 #include <graphics/camera/perspective_camera.hpp>
-#include <graphics/components/transform.h>
+#include <graphics/components/transform.hpp>
 
 namespace graphics::camera
 {

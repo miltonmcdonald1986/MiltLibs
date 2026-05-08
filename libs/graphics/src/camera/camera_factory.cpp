@@ -3,8 +3,9 @@
 #include <entt/entity/registry.hpp>
 
 #include <graphics/camera/camera_matrices.hpp>
-#include <graphics/camera/camera_controller_state.hpp>
-#include <graphics/components/transform.h>
+#include <graphics/components/transform.hpp>
+
+#include "camera_controller_state.hpp"
 
 namespace graphics::camera
 {

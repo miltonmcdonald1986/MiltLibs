@@ -7,23 +7,26 @@
 #include <graphics/camera/camera_systems.hpp>
 #include <graphics/components/color.hpp>
 #include <graphics/components/flash.hpp>
-#include <graphics/components/mesh_gl.hpp>
 #include <graphics/components/shader.hpp>
-#include <graphics/components/texture.h>
-#include <graphics/components/world_matrix.h>
+#include <graphics/components/texture.hpp>
+#include <graphics/components/world_matrix.hpp>
+#include <graphics/mesh/mesh_gl.hpp>
 #include <graphics/platform/gl_includes.h>
-#include <graphics/utils/math_utils.h>
+
+#include <math/convert_mat4.hpp>
+#include <math/convert_vec4.hpp>
+#include <utils/math_utils.h>
 
 namespace graphics::rendering
 {
 
     glm::vec4 compute_final_color(const components::Color& color, const components::Flash* flash)
     {
-        if (!flash)
-            return glm::make_vec4(color.rgba);
+        if (!flash->enabled)
+            return math::to_glm(color.rgba);
 
-        float intensity = std::sin(flash->t) * 0.5f + 0.5f;
-        return glm::vec4(color.rgba[0] * intensity, color.rgba[1] * intensity, color.rgba[2] * intensity, color.rgba[3]);
+        float intensity = std::cos(flash->t) * 0.5f + 0.5f;
+        return glm::vec4(color.rgba.v[0] * intensity, color.rgba.v[1] * intensity, color.rgba.v[2] * intensity, color.rgba.v[3]);
     }
 
     engine::Status Renderer::init(int framebuffer_width, int framebuffer_height)
@@ -71,13 +74,13 @@ namespace graphics::rendering
 
         entt::entity camera = reg.view<camera::Camera>().front();
         camera::CameraMatrices* p_camera_matrices = reg.try_get<camera::CameraMatrices>(camera);
-        glm::mat4 view = p_camera_matrices ? p_camera_matrices->view : glm::mat4(1.F);
-        glm::mat4 proj = p_camera_matrices ? p_camera_matrices->projection : glm::mat4(1.F);
+        glm::mat4 view = p_camera_matrices ? math::to_glm(p_camera_matrices->view) : glm::mat4(1.F);
+        glm::mat4 proj = p_camera_matrices ? math::to_glm(p_camera_matrices->projection) : glm::mat4(1.F);
 
         // ---------------------------------------------------------
         // 3. Render all meshes
         // ---------------------------------------------------------
-        auto ents = reg.view<components::Shader, components::MeshGL>();
+        auto ents = reg.view<components::Shader, mesh::MeshGL>();
         for (auto [entity, shader, mesh] : ents.each())
         {
             glUseProgram(shader.id);
@@ -104,7 +107,7 @@ namespace graphics::rendering
 
             // --- Upload uModel ---
             if (GLint loc = glGetUniformLocation(shader.id, "uModel"); loc >= 0)
-                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(reg.get<components::WorldMatrix>(entity).value));
+                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(math::to_glm(reg.get<components::WorldMatrix>(entity).value)));
 
             // --- Upload uView ---
             if (GLint loc = glGetUniformLocation(shader.id, "uView"); loc >= 0)
