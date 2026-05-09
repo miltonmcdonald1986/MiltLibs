@@ -1,7 +1,8 @@
 #ifndef GRAPHICS_COMPONENTS_COMPONENT_DEFAULTS_HPP
 #define GRAPHICS_COMPONENTS_COMPONENT_DEFAULTS_HPP
 
-#include <graphics/math/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
+
 #include <graphics/platform/gl_includes.h>	// IWYU pragma: keep
 
 namespace graphics::components
@@ -9,7 +10,7 @@ namespace graphics::components
 
 	struct ColorDefaults
 	{
-		inline static const math::Vec4 rgba{ math::create_vec4_fill(1.F) };
+		static constexpr glm::vec4 rgba{ 1.F, 1.F, 1.F, 1.F };
 	};
 
 	struct FlashDefaults

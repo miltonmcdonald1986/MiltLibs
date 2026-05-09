@@ -1,8 +1,9 @@
 #ifndef GRAPHICS_COMPONENTS_SHAKE_HPP
 #define GRAPHICS_COMPONENTS_SHAKE_HPP
 
+#include <glm/ext/matrix_float4x4.hpp>
+
 #include <graphics/components/component_defaults.hpp>
-#include <graphics/math/mat4.hpp>
 
 namespace graphics::components
 {
@@ -12,7 +13,7 @@ namespace graphics::components
         float       time        { 0.F };
         float       intensity   { ShakeDefaults::intensity };
         float       speed       { ShakeDefaults::speed };		
-        math::Mat4  base_world  { 1.F };
+        glm::mat4   base_world  { 1.F };
     };
 
     struct ShakeOnce
@@ -21,7 +22,7 @@ namespace graphics::components
         float       time_left   { ShakeOnceDefaults::duration };
         float       intensity   { ShakeDefaults::intensity };
         float       speed       { ShakeDefaults::speed };
-		math::Mat4  base_world  { 1.F };
+		glm::mat4   base_world  { 1.F };
     };
 
 } // namespace graphics::components

@@ -10,7 +10,6 @@
 #include <graphics/engine/engine.hpp>
 #include <graphics/factories/shader_factories.hpp>
 #include <graphics/factories/texture_factories.hpp>
-#include <graphics/math/vec3.hpp>
 #include <graphics/mesh/mesh_factory.hpp>
 #include <graphics/mesh/mesh_gl.hpp>
 #include <graphics/scene/scene.h>
@@ -43,10 +42,11 @@ auto init(graphics::engine::AppData* p_data) -> bool
     const int num_cubes = 5;
     for (int i = 0; i < num_cubes; i++) {
         entt::entity ent = reg.create();
-        reg.emplace<graphics::components::Transform>(ent,
-            graphics::math::Vec3{ i * 2.F, 0.F, -5.F },
-            graphics::math::create_vec3_fill(0.F),
-            graphics::math::create_vec3_fill(1.F));
+        
+        const glm::vec3 pos{ i * 2.F, 0.F, -5.F };
+        const glm::vec3 rot{ 0.F };
+        const glm::vec3 scl{ 1.F };
+        reg.emplace<graphics::components::Transform>(ent, pos, rot, scl);
         reg.emplace<graphics::components::Color>(ent, graphics::components::Color{});
         reg.emplace<graphics::components::Flash>(ent, graphics::components::Flash{});
         reg.emplace<graphics::mesh::MeshGL>(ent, *graphics::mesh::create_textured_cube_mesh());

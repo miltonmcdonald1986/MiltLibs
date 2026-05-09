@@ -17,8 +17,6 @@
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 
-#include <math/convert_vec4.hpp>
-
 namespace graphics::ui
 {
 
@@ -119,9 +117,7 @@ namespace graphics::ui
         for (auto [entity, color_component] : view.each()) 
         {
             std::string label = "entity " + std::to_string((uint32_t)entity);
-            glm::vec4 glm_rgba = math::to_glm(color_component.rgba);
-            ImGui::ColorEdit4(label.c_str(), glm::value_ptr(glm_rgba));
-            color_component.rgba = math::from_glm(glm_rgba);
+            ImGui::ColorEdit4(label.c_str(), glm::value_ptr(color_component.rgba));
         }
         ImGui::End();
     }

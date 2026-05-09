@@ -8,9 +8,6 @@
 #include <graphics/components/world_matrix.hpp>
 #include <graphics/systems/animation.h>
 
-#include <math/convert_mat4.hpp>
-#include <math/convert_vec3.hpp>
-
 namespace graphics::systems
 {
 	
@@ -18,14 +15,14 @@ namespace graphics::systems
     {
         glm::mat4 m = glm::mat4(1.0f);
 
-        m = glm::translate(m, math::to_glm(t.get_position()));
+        m = glm::translate(m, t.get_position());
 
-        auto rot = math::to_glm(t.get_rotation());
+        auto rot = t.get_rotation();
         m = glm::rotate(m, rot.x, glm::vec3(1, 0, 0));
         m = glm::rotate(m, rot.y, glm::vec3(0, 1, 0));
         m = glm::rotate(m, rot.z, glm::vec3(0, 0, 1));
 
-        m = glm::scale(m, math::to_glm(t.get_scale()));
+        m = glm::scale(m, t.get_scale());
 
         return m;
     }
@@ -72,7 +69,7 @@ namespace graphics::systems
                 parentNoScale[i] = glm::vec4(v, parentNoScale[i].w); // restore W
             }
 
-            wm.value = math::from_glm(parentNoScale * local);
+            wm.value = parentNoScale * local;
         }
 
         // Clear dirty flag
@@ -86,7 +83,7 @@ namespace graphics::systems
                 update_world_recursive(
                     reg,
                     child,
-                    math::to_glm(wm.value),
+                    wm.value,
                     must_update_world,   // propagate dirty downward
                     children
                 );

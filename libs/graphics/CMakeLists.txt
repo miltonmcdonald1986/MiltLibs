@@ -62,10 +62,9 @@ target_link_libraries(graphics
         EnTT::EnTT
         glfw
         gl3w
+        glm::glm
         imgui
         magic_enum::magic_enum
         OpenGL::GL
         spdlog::spdlog
-    PRIVATE
-        glm::glm
 )
