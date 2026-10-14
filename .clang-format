@@ -1,0 +1,25 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: Latest
+IndentWidth: 4
+ColumnLimit: 100
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Inline
+BreakTemplateDeclarations: Yes
+PointerAlignment: Left
+
+# Include order: own header, standard library, third-party, MiltLibs, private headers.
+IncludeBlocks: Regroup
+MainIncludeChar: Any
+IncludeIsMainRegex: '(_tests)?$'
+IncludeCategories:
+  - Regex: '^<[a-z_]+>$'
+    Priority: 1
+  - Regex: '^<milt/'
+    Priority: 3
+  - Regex: '^<'
+    Priority: 2
+  - Regex: '^"'
+    Priority: 4
+...
