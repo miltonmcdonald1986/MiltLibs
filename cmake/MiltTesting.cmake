@@ -23,12 +23,14 @@ endif()
 #
 # Creates a GoogleTest executable and registers each TEST() with CTest.
 # Does nothing when MILTLIBS_BUILD_TESTS is OFF, so call it unconditionally.
+# Arguments are validated either way.
 function(milt_add_test name)
+    cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES;DEPENDS")
+    _milt_check_args(milt_add_test ${name} REQUIRED SOURCES)
+
     if(NOT MILTLIBS_BUILD_TESTS)
         return()
     endif()
-
-    cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES;DEPENDS")
 
     add_executable(${name} ${ARG_SOURCES})
     _milt_configure_executable(${name} DEPENDS ${ARG_DEPENDS} GTest::gtest_main GTest::gmock)

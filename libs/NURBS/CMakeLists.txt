@@ -1,4 +1,4 @@
-milt_add_library(nurbs
+milt_add_library(nurbs STATIC
     SOURCES src/nurbs.cpp
 )
 
