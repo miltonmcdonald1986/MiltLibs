@@ -13,7 +13,8 @@ endfunction()
 #
 # Creates library <name> and its alias Milt::<name>.
 # Without SOURCES the library is header-only (INTERFACE).
-# Public headers live in <lib>/include, private code in <lib>/src.
+# Public headers live in <lib>/include, private code in <lib>/src,
+# tests in <lib>/tests.
 # DEPENDS are linked PUBLIC, since a library's headers usually expose them.
 function(milt_add_library name)
     cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES;DEPENDS")
@@ -50,7 +51,12 @@ endfunction()
 # milt_add_runner(<name> SOURCES <src>... [DEPENDS <target>...])
 #
 # Creates a small executable for trying a library by hand.
+# Does nothing when MILTLIBS_BUILD_RUNNERS is OFF, so call it unconditionally.
 function(milt_add_runner name)
+    if(NOT MILTLIBS_BUILD_RUNNERS)
+        return()
+    endif()
+
     cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES;DEPENDS")
 
     add_executable(${name} ${ARG_SOURCES})
