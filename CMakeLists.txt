@@ -19,10 +19,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(MiltCompileOptions)
 include(MiltLibrary)
+include(MiltTesting)
 
 if(MILTLIBS_BUILD_TESTS)
     enable_testing()
-    include(MiltTesting)
 endif()
 
 add_subdirectory(libs)
