@@ -1,9 +1,11 @@
+/// @file
+/// @brief Umbrella header for the NURBS library.
+
 #pragma once
 
-namespace milt::nurbs {
+#include <milt/nurbs/point.hpp>
+#include <milt/nurbs/power_basis.hpp>
 
-// Stand-in that exercises the build, tests and runner.
-// Remove once real NURBS code exists.
-[[nodiscard]] int placeholder(int x);
-
-} // namespace milt::nurbs
+/// @namespace milt::nurbs
+/// @brief Curve and surface algorithms from *The NURBS Book* (Piegl & Tiller), generic over
+/// user-supplied point and scalar types.

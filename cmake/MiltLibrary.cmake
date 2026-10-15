@@ -1,5 +1,26 @@
 include_guard(GLOBAL)
 
+# GLM supplies real-world point types (glm::dvec3, ...) to runners, which link it
+# automatically, and to tests, which list glm::glm in DEPENDS.
+# Use an installed GLM if one is found, otherwise download it. SYSTEM keeps the
+# project's warnings-as-errors from applying to GLM's headers.
+if(MILTLIBS_BUILD_TESTS OR MILTLIBS_BUILD_RUNNERS)
+    include(FetchContent)
+
+    FetchContent_Declare(glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG        1.0.3
+        GIT_SHALLOW    TRUE
+        SYSTEM
+        FIND_PACKAGE_ARGS
+    )
+
+    # Header-only: don't build GLM's optional compiled library.
+    set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(glm)
+endif()
+
 # _milt_check_args(<helper> <target> [REQUIRED <keyword>...])
 #
 # Validates the ARG_* results of the caller's cmake_parse_arguments call.
@@ -86,7 +107,7 @@ endfunction()
 
 # milt_add_runner(<name> SOURCES <src>... [DEPENDS <target>...])
 #
-# Creates a small executable for trying a library by hand.
+# Creates a small executable for trying a library by hand. Links glm::glm.
 # Does nothing when MILTLIBS_BUILD_RUNNERS is OFF, so call it unconditionally.
 # Arguments are validated either way.
 function(milt_add_runner name)
@@ -98,5 +119,5 @@ function(milt_add_runner name)
     endif()
 
     add_executable(${name} ${ARG_SOURCES})
-    _milt_configure_executable(${name} DEPENDS ${ARG_DEPENDS})
+    _milt_configure_executable(${name} DEPENDS ${ARG_DEPENDS} glm::glm)
 endfunction()
