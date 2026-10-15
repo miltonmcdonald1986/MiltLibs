@@ -21,7 +21,7 @@ endif()
 
 # milt_add_test(<name> SOURCES <src>... [DEPENDS <target>...])
 #
-# Creates a GoogleTest executable and registers each TEST() with CTest.
+# Creates GoogleTest executable milt_<name> and registers each TEST() with CTest.
 # Does nothing when MILTLIBS_BUILD_TESTS is OFF, so call it unconditionally.
 # Arguments are validated either way.
 function(milt_add_test name)
@@ -32,7 +32,8 @@ function(milt_add_test name)
         return()
     endif()
 
-    add_executable(${name} ${ARG_SOURCES})
-    _milt_configure_executable(${name} DEPENDS ${ARG_DEPENDS} GTest::gtest_main GTest::gmock)
-    gtest_discover_tests(${name})
+    set(target milt_${name})
+    add_executable(${target} ${ARG_SOURCES})
+    _milt_configure_executable(${target} DEPENDS ${ARG_DEPENDS} GTest::gtest_main GTest::gmock)
+    gtest_discover_tests(${target})
 endfunction()
