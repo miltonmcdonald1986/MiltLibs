@@ -56,7 +56,9 @@ endfunction()
 
 # milt_add_library(<name> {STATIC SOURCES <src>... | HEADER_ONLY} [DEPENDS <target>...])
 #
-# Creates library <name> and its alias Milt::<name>.
+# Creates library target milt_<name> and its alias Milt::<name>.
+# Consumers and other MiltLibs targets link only Milt::<name>; the milt_
+# prefix keeps the real target from colliding with names in consumer builds.
 # Exactly one of STATIC or HEADER_ONLY is required. STATIC needs SOURCES;
 # HEADER_ONLY creates an INTERFACE library and takes no SOURCES.
 # Public headers live in <lib>/include, private code in <lib>/src,
@@ -76,38 +78,40 @@ function(milt_add_library name)
         message(FATAL_ERROR "milt_add_library(${name}): HEADER_ONLY takes no SOURCES")
     endif()
 
+    set(target milt_${name})
     set(include_dir "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
     if(ARG_STATIC)
-        add_library(${name} STATIC ${ARG_SOURCES})
-        target_compile_features(${name} PUBLIC cxx_std_23)
-        target_include_directories(${name}
+        add_library(${target} STATIC ${ARG_SOURCES})
+        target_compile_features(${target} PUBLIC cxx_std_23)
+        target_include_directories(${target}
             PUBLIC
                 $<BUILD_INTERFACE:${include_dir}>
                 $<INSTALL_INTERFACE:include>
             PRIVATE
                 "${CMAKE_CURRENT_SOURCE_DIR}/src"
         )
-        target_link_libraries(${name}
+        target_link_libraries(${target}
             PUBLIC ${ARG_DEPENDS}
             PRIVATE milt_warnings
         )
     else()
-        add_library(${name} INTERFACE)
-        target_compile_features(${name} INTERFACE cxx_std_23)
-        target_include_directories(${name} INTERFACE
+        add_library(${target} INTERFACE)
+        target_compile_features(${target} INTERFACE cxx_std_23)
+        target_include_directories(${target} INTERFACE
             $<BUILD_INTERFACE:${include_dir}>
             $<INSTALL_INTERFACE:include>
         )
-        target_link_libraries(${name} INTERFACE ${ARG_DEPENDS})
+        target_link_libraries(${target} INTERFACE ${ARG_DEPENDS})
     endif()
 
-    add_library(Milt::${name} ALIAS ${name})
+    set_target_properties(${target} PROPERTIES EXPORT_NAME ${name})
+    add_library(Milt::${name} ALIAS ${target})
 endfunction()
 
 # milt_add_runner(<name> SOURCES <src>... [DEPENDS <target>...])
 #
-# Creates a small executable for trying a library by hand. Links glm::glm.
+# Creates executable milt_<name> for trying a library by hand. Links glm::glm.
 # Does nothing when MILTLIBS_BUILD_RUNNERS is OFF, so call it unconditionally.
 # Arguments are validated either way.
 function(milt_add_runner name)
@@ -118,6 +122,7 @@ function(milt_add_runner name)
         return()
     endif()
 
-    add_executable(${name} ${ARG_SOURCES})
-    _milt_configure_executable(${name} DEPENDS ${ARG_DEPENDS} glm::glm)
+    set(target milt_${name})
+    add_executable(${target} ${ARG_SOURCES})
+    _milt_configure_executable(${target} DEPENDS ${ARG_DEPENDS} glm::glm)
 endfunction()
