@@ -18,9 +18,26 @@ using milt::nurbs::horner1;
 
 struct NoOps {};
 
+// Provides exactly what Point requires and nothing more: no default constructor, no
+// subtraction, no scalar-on-the-left multiplication. GLM can't stand in here because it
+// supports all of those, so a horner1 that relied on them would still pass the GLM tests.
+struct MinimalPoint {
+    explicit constexpr MinimalPoint(double v) : value{v} {}
+    double value;
+};
+
+constexpr MinimalPoint operator*(MinimalPoint p, double s) {
+    return MinimalPoint{p.value * s};
+}
+constexpr MinimalPoint operator+(MinimalPoint a, MinimalPoint b) {
+    return MinimalPoint{a.value + b.value};
+}
+
 static_assert(milt::nurbs::Point<double, double>);
 static_assert(milt::nurbs::Point<glm::dvec2, double>);
 static_assert(milt::nurbs::Point<glm::dvec3, double>);
+static_assert(milt::nurbs::Point<MinimalPoint, double>);
+static_assert(!std::default_initializable<MinimalPoint>);
 static_assert(!milt::nurbs::Point<NoOps, double>);
 static_assert(!milt::nurbs::PointRange<std::forward_list<double>, double>);
 static_assert(!milt::nurbs::PointRange<std::list<double>, double>);
@@ -32,6 +49,10 @@ static_assert(std::same_as<decltype(horner1(std::vector<glm::dvec2>{}, 0.5)), gl
 // 1 + 2u + 3u^2 at u = 2 is 17, exact in double.
 constexpr std::array scalar_coefficients{1.0, 2.0, 3.0};
 static_assert(horner1(scalar_coefficients, 2.0) == 17.0);
+
+// The same polynomial with MinimalPoint: horner1 needs nothing beyond the Point concept.
+constexpr std::array minimal_coefficients{MinimalPoint{1.0}, MinimalPoint{2.0}, MinimalPoint{3.0}};
+static_assert(horner1(minimal_coefficients, 2.0).value == 17.0);
 
 } // namespace
 
@@ -104,21 +125,12 @@ TEST(Horner1, DegreeThreeIsTwistedCubic) {
     EXPECT_DOUBLE_EQ(glm::dot(p1 - p0, glm::cross(p2 - p0, p3 - p0)), 12.0);
 }
 
-TEST(Horner1, UserPointType) {
-    // C(u) = (1, 0) + (0, 2) u + (1, 1) u^2
-    const std::array coefficients{glm::dvec2{1.0, 0.0}, glm::dvec2{0.0, 2.0}, glm::dvec2{1.0, 1.0}};
-
-    const glm::dvec2 c0 = horner1(coefficients, 0.0);
-    EXPECT_DOUBLE_EQ(c0.x, 1.0);
-    EXPECT_DOUBLE_EQ(c0.y, 0.0);
-
-    const glm::dvec2 c2 = horner1(coefficients, 2.0);
-    EXPECT_DOUBLE_EQ(c2.x, 5.0);
-    EXPECT_DOUBLE_EQ(c2.y, 8.0);
-
-    const glm::dvec2 half = horner1(coefficients, 0.5);
-    EXPECT_DOUBLE_EQ(half.x, 1.25);
-    EXPECT_DOUBLE_EQ(half.y, 1.25);
+TEST(Horner1, MinimalPointType) {
+    // 1 + 2u + 3u^2, evaluated with a point type that has only * and +.
+    EXPECT_DOUBLE_EQ(horner1(minimal_coefficients, 0.0).value, 1.0);
+    EXPECT_DOUBLE_EQ(horner1(minimal_coefficients, 1.0).value, 6.0);
+    EXPECT_DOUBLE_EQ(horner1(minimal_coefficients, 2.0).value, 17.0);
+    EXPECT_DOUBLE_EQ(horner1(minimal_coefficients, -1.0).value, 2.0);
 }
 
 TEST(Horner1, AcceptsCommonContainers) {
