@@ -1,10 +1,8 @@
-milt_add_library(nurbs STATIC
-    SOURCES src/nurbs.cpp
-)
+milt_add_library(nurbs HEADER_ONLY)
 
 milt_add_test(nurbs_tests
-    SOURCES tests/nurbs_tests.cpp
-    DEPENDS Milt::nurbs
+    SOURCES tests/power_basis_tests.cpp
+    DEPENDS Milt::nurbs glm::glm
 )
 
 milt_add_runner(nurbs_runner
