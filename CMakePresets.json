@@ -59,7 +59,12 @@
     { "name": "web-release", "configurePreset": "web-release" }
   ],
   "testPresets": [
-    { "name": "base", "hidden": true, "output": { "outputOnFailure": true } },
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "timeout": 120 }
+    },
     { "name": "msvc-debug", "inherits": "base", "configurePreset": "msvc-debug" },
     { "name": "msvc-release", "inherits": "base", "configurePreset": "msvc-release" },
     { "name": "clang-debug", "inherits": "base", "configurePreset": "clang-debug" },
