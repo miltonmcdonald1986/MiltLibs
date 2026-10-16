@@ -19,6 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(MiltCompileOptions)
 include(MiltLibrary)
+include(MiltRaylib)
 include(MiltTesting)
 
 if(MILTLIBS_BUILD_TESTS)

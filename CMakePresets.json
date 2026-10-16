@@ -14,7 +14,7 @@
       "name": "msvc",
       "hidden": true,
       "inherits": "base",
-      "cacheVariables": { "CMAKE_CXX_COMPILER": "cl" },
+      "cacheVariables": { "CMAKE_C_COMPILER": "cl", "CMAKE_CXX_COMPILER": "cl" },
       "architecture": { "value": "x64", "strategy": "external" },
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
@@ -22,13 +22,13 @@
       "name": "clang",
       "hidden": true,
       "inherits": "base",
-      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+      "cacheVariables": { "CMAKE_C_COMPILER": "clang", "CMAKE_CXX_COMPILER": "clang++" }
     },
     {
       "name": "gcc",
       "hidden": true,
       "inherits": "base",
-      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" },
+      "cacheVariables": { "CMAKE_C_COMPILER": "gcc", "CMAKE_CXX_COMPILER": "g++" },
       "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
     { "name": "msvc-debug", "displayName": "MSVC Debug", "inherits": ["msvc", "debug"] },
