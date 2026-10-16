@@ -6,6 +6,6 @@ milt_add_test(nurbs_tests
 )
 
 milt_add_runner(nurbs_runner
-    SOURCES runner/main.cpp runner/framework/app_loop.cpp
+    SOURCES runner/main.cpp runner/triangle_view.cpp runner/framework/app_loop.cpp
     DEPENDS Milt::nurbs milt_raygui
 )
