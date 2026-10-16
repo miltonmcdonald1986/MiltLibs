@@ -114,6 +114,12 @@ endfunction()
 # Creates executable milt_<name> for trying a library by hand. Links glm::glm.
 # Does nothing when MILTLIBS_BUILD_RUNNERS is OFF, so call it unconditionally.
 # Arguments are validated either way.
+#
+# Under Emscripten (the web-debug/web-release presets), it builds
+# milt_<name>.html, using Emscripten's default shell page, with
+# milt_<name>.js and milt_<name>.wasm beside it. Browsers won't load these
+# from file://, so serve them, for example with
+#   emrun build/web-debug/libs/<Lib>/milt_<name>.html
 function(milt_add_runner name)
     cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES;DEPENDS")
     _milt_check_args(milt_add_runner ${name} REQUIRED SOURCES)
@@ -125,4 +131,9 @@ function(milt_add_runner name)
     set(target milt_${name})
     add_executable(${target} ${ARG_SOURCES})
     _milt_configure_executable(${target} DEPENDS ${ARG_DEPENDS} glm::glm)
+
+    if(EMSCRIPTEN)
+        set_target_properties(${target} PROPERTIES SUFFIX ".html")
+        target_link_options(${target} PRIVATE -sALLOW_MEMORY_GROWTH=1)
+    endif()
 endfunction()
