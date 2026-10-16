@@ -31,8 +31,7 @@ template <class Real, PointRange<Real> Coefficients>
 
     point_t<Coefficients> c = *std::ranges::rbegin(coefficients);
     for (const auto& a : coefficients | std::views::reverse | std::views::drop(1)) {
-        const point_t<Coefficients> scaled = c * u0;
-        c = scaled + a;
+        c = c * u0 + a;
     }
     return c;
 }

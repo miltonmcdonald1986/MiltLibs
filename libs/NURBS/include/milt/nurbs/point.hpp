@@ -11,7 +11,9 @@ namespace milt::nurbs {
 /// @brief A user-supplied point (or vector) type that can be scaled by @p Real and added.
 ///
 /// Every curve algorithm in this library is written against these operations, so any type
-/// providing them can be used, including plain scalars such as `double`.
+/// providing them can be used, including plain scalars such as `double`. The combined form
+/// `p * r + p` is required as well, so `p * r` may return a type other than @p P (such as an
+/// expression template) as long as it can still be added to a point.
 ///
 /// @tparam P    The point type.
 /// @tparam Real The scalar type points are multiplied by, on the right (`p * r`).
@@ -19,6 +21,7 @@ template <class P, class Real>
 concept Point = std::copyable<P> && requires(const P& p, const Real& r) {
     { p * r } -> std::convertible_to<P>;
     { p + p } -> std::convertible_to<P>;
+    { p * r + p } -> std::convertible_to<P>;
 };
 
 /// @brief The point type held by a range of points.
