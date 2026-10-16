@@ -19,6 +19,8 @@ struct AppConfig {
 /// Each frame, `frame` is called between `BeginDrawing` and `EndDrawing`, so it doesn't call
 /// them itself. The window is closed before this function returns.
 ///
+/// Under Emscripten, the browser drives the loop instead, and this function never returns.
+///
 /// @param config The window's size and title.
 /// @param frame  Called once per frame to update and draw the app.
 void run_app(const AppConfig& config, std::function<void()> frame);
