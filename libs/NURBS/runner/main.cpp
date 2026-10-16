@@ -9,10 +9,12 @@ int main() {
     constexpr milt::runner::AppConfig config{.width = 800, .height = 600, .title = "NURBS runner"};
     const milt::runner::Viewport viewport{.center = {config.width / 2.0, config.height / 2.0},
                                           .pixels_per_unit = 200.0};
-    const TriangleModel model;
+    TriangleModel model;
 
     milt::runner::run_app(config, [&] {
         ClearBackground(RAYWHITE);
+        model.settings = draw_settings_panel(model.settings);
+        model.update(GetFrameTime());
         draw_triangle(model, viewport);
     });
 }
