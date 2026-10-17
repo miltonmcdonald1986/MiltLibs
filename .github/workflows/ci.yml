@@ -37,13 +37,17 @@ jobs:
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
 
       # The presets name plain gcc/g++ and clang/clang++, so point those at the
-      # versions installed above.
+      # versions installed above. The runner image already registers clang++
+      # as its own alternative, so it can't be a slave of clang, and --set
+      # overrides any higher-priority Clang the image registered.
       - name: Select GCC 14 and Clang 19
         run: |
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
             --slave /usr/bin/g++ g++ /usr/bin/g++-14
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100 \
-            --slave /usr/bin/clang++ clang++ /usr/bin/clang++-19
+          for tool in clang clang++; do
+            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-19 100
+            sudo update-alternatives --set $tool /usr/bin/$tool-19
+          done
           g++ --version
           clang++ --version
 
