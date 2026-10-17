@@ -1,0 +1,15 @@
+---
+# Checks disabled or narrowed below are explained in the commits that changed them.
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  cppcoreguidelines-*
+WarningsAsErrors: '*'
+# Every MiltLibs header (library, runner and test), but none from _deps. Paths on Windows
+# can mix separators, so both are accepted.
+HeaderFilterRegex: '[/\\]libs[/\\]'
+ExcludeHeaderFilterRegex: '[/\\]_deps[/\\]'
+...
