@@ -18,27 +18,34 @@ jobs:
     name: ${{ matrix.preset }}
     runs-on: ubuntu-24.04
     strategy:
+      # Let every leg finish, so one compiler failing doesn't hide the others.
+      fail-fast: false
       matrix:
-        preset: [gcc-debug]
+        preset: [gcc-debug, gcc-release, clang-debug, clang-release]
 
     steps:
       - uses: actions/checkout@v5
 
-      # C++23 needs GCC 14+. raylib is built from source for the runners and
-      # needs the X11/GL dev packages.
+      # C++23 needs GCC 14+ or Clang 18+. Clang uses g++-14's libstdc++.
+      # raylib is built from source for the runners and needs the X11/GL dev
+      # packages.
       - name: Install toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            ninja-build g++-14 \
+            ninja-build g++-14 clang-19 \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
 
-      # The presets name plain gcc/g++, so point those at version 14.
-      - name: Select GCC 14
+      # The presets name plain gcc/g++ and clang/clang++, so point those at the
+      # versions installed above.
+      - name: Select GCC 14 and Clang 19
         run: |
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
             --slave /usr/bin/g++ g++ /usr/bin/g++-14
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100 \
+            --slave /usr/bin/clang++ clang++ /usr/bin/clang++-19
           g++ --version
+          clang++ --version
 
       - name: Configure, build and test
         run: cmake --workflow --preset ${{ matrix.preset }}
