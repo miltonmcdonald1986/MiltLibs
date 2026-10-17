@@ -100,7 +100,8 @@ jobs:
           version: 4.0.10
           actions-cache-folder: emsdk-cache
 
-      # raylib and raygui only; see the build job's cache step.
+      # Tests are off for web-release, so _deps holds GLM, raylib and raygui
+      # but not googletest. See the build job's cache step.
       - name: Cache dependencies
         uses: actions/cache@v6
         with:
