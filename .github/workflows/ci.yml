@@ -30,7 +30,7 @@ jobs:
           - { os: windows-latest, preset: msvc-release }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # C++23 needs GCC 14+ or Clang 18+. Clang uses g++-14's libstdc++.
       # raylib is built from source for the runners and needs the X11/GL dev
