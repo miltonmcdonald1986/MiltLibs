@@ -136,7 +136,8 @@ TEST(Horner1, MinimalPointType) {
 TEST(Horner1, AcceptsCommonContainers) {
     const std::vector<double> vec{1.0, 2.0, 3.0};
     const std::span<const double> span{vec};
-    const double c_array[]{1.0, 2.0, 3.0};
+    // A C array is the point of this case.
+    const double c_array[]{1.0, 2.0, 3.0}; // NOLINT(*-avoid-c-arrays)
 
     EXPECT_DOUBLE_EQ(horner1(vec, 2.0), 17.0);
     EXPECT_DOUBLE_EQ(horner1(span, 2.0), 17.0);

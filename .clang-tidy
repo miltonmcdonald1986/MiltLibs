@@ -1,0 +1,25 @@
+---
+# Checks disabled or narrowed below are explained in the commits that changed them.
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-math-missing-parentheses,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-type-union-access
+WarningsAsErrors: '*'
+CheckOptions:
+  # Only the l suffix is easy to misread (as 1); lowercase f and u are fine.
+  readability-uppercase-literal-suffix.NewSuffixes: 'L;LL;LU;LLU'
+# Every MiltLibs header (library, runner and test), but none from _deps. Paths on Windows
+# can mix separators, so both are accepted.
+HeaderFilterRegex: '[/\\]libs[/\\]'
+ExcludeHeaderFilterRegex: '[/\\]_deps[/\\]'
+...
