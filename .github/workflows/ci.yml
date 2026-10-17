@@ -29,6 +29,51 @@ jobs:
       - name: Check formatting
         run: git ls-files -z '*.hpp' '*.cpp' | xargs -0 clang-format --dry-run --Werror
 
+  # Checks every MiltLibs source, and through .clang-tidy's header filter
+  # every MiltLibs header, against .clang-tidy. Sources in _deps aren't
+  # checked and their headers are filtered out, so they can't fail the job.
+  # clang-tidy is pinned from PyPI for the same reason as clang-format. Only
+  # configure runs: clang-tidy needs compile_commands.json and the fetched
+  # dependency headers, not a build. The toolchain matches the build job's
+  # clang-debug leg, so the compile commands do too.
+  tidy:
+    name: clang-tidy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build g++-14 clang-19 \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+          pipx install clang-tidy==22.1.8
+
+      # See the build job's step of the same name.
+      - name: Select GCC 14 and Clang 19
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-14
+          for tool in clang clang++; do
+            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-19 100
+            sudo update-alternatives --set $tool /usr/bin/$tool-19
+          done
+
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: build/clang-debug/_deps
+          key: deps-tidy-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
+
+      - name: Configure
+        run: cmake --preset clang-debug
+
+      # The positional regex picks the files to check: everything under libs/
+      # except _deps, which also skips raygui's implementation in cmake/.
+      - name: Run clang-tidy
+        run: run-clang-tidy.py -p build/clang-debug -quiet '^(?!.*/_deps/).*/libs/'
+
   build:
     name: ${{ matrix.preset }}
     runs-on: ${{ matrix.os }}
