@@ -1,5 +1,8 @@
 #include "triangle_view.hpp"
 
+#include <format>
+#include <string>
+
 #include <raygui.h>
 #include <raylib.h>
 
@@ -18,8 +21,9 @@ TriangleSettings draw_settings_panel(TriangleSettings current) {
 
     // raygui sliders work in float.
     auto speed = static_cast<float>(current.speed);
-    GuiSlider({.x = 70, .y = 55, .width = 120, .height = 20}, "Speed",
-              TextFormat("%.1f", current.speed), &speed, 0.0f, 6.0f);
+    const std::string label = std::format("{:.1f}", current.speed);
+    GuiSlider({.x = 70, .y = 55, .width = 120, .height = 20}, "Speed", label.c_str(), &speed, 0.0f,
+              6.0f);
     current.speed = speed;
 
     return current;

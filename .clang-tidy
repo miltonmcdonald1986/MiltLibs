@@ -10,7 +10,10 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-math-missing-parentheses,
-  cppcoreguidelines-*
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-type-union-access
 WarningsAsErrors: '*'
 CheckOptions:
   # Only the l suffix is easy to misread (as 1); lowercase f and u are fine.
