@@ -14,6 +14,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # .clang-format uses MainIncludeChar, so it needs clang-format 19+. The
+  # version is pinned from PyPI because formatting output can change between
+  # releases; bump it together with any reformat it causes.
+  format:
+    name: clang-format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install clang-format
+        run: pipx install clang-format==22.1.5
+
+      - name: Check formatting
+        run: git ls-files -z '*.hpp' '*.cpp' | xargs -0 clang-format --dry-run --Werror
+
   build:
     name: ${{ matrix.preset }}
     runs-on: ${{ matrix.os }}
