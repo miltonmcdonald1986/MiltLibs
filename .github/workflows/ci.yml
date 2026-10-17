@@ -67,5 +67,15 @@ jobs:
         with:
           arch: x64
 
+      # FetchContent downloads googletest, GLM, raylib and raygui into _deps.
+      # Their pins live in cmake/*.cmake and the libraries' CMakeLists.txt, so
+      # a change there starts a fresh cache. Build trees are compiler-specific,
+      # so each preset gets its own.
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: deps-${{ runner.os }}-${{ matrix.preset }}-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
+
       - name: Configure, build and test
         run: cmake --workflow --preset ${{ matrix.preset }}
