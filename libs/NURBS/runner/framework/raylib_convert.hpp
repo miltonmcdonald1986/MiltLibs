@@ -16,7 +16,7 @@ namespace milt::runner {
 ///
 /// @return The same vector as a raylib `Vector2`.
 [[nodiscard]] inline Vector2 to_vector2(glm::dvec2 v) {
-    return {static_cast<float>(v.x), static_cast<float>(v.y)};
+    return {.x = static_cast<float>(v.x), .y = static_cast<float>(v.y)};
 }
 
 /// @brief Converts a world point to a raylib screen position.

@@ -13,12 +13,13 @@ void draw_triangle(const TriangleModel& model, const milt::runner::Viewport& vie
 }
 
 TriangleSettings draw_settings_panel(TriangleSettings current) {
-    GuiGroupBox({10, 10, 230, 80}, "Triangle");
-    GuiCheckBox({20, 25, 20, 20}, "Spin", &current.spinning);
+    GuiGroupBox({.x = 10, .y = 10, .width = 230, .height = 80}, "Triangle");
+    GuiCheckBox({.x = 20, .y = 25, .width = 20, .height = 20}, "Spin", &current.spinning);
 
     // raygui sliders work in float.
     auto speed = static_cast<float>(current.speed);
-    GuiSlider({70, 55, 120, 20}, "Speed", TextFormat("%.1f", current.speed), &speed, 0.0f, 6.0f);
+    GuiSlider({.x = 70, .y = 55, .width = 120, .height = 20}, "Speed",
+              TextFormat("%.1f", current.speed), &speed, 0.0f, 6.0f);
     current.speed = speed;
 
     return current;
