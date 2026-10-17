@@ -1,5 +1,7 @@
 # MiltLibs
 
+[![CI](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/miltonmcdonald1986/MiltLibs/actions/workflows/ci.yml?query=branch%3Amain)
+
 Milton's C++23 libraries.
 
 ## Building
