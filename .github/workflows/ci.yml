@@ -72,7 +72,7 @@ jobs:
       # a change there starts a fresh cache. Build trees are compiler-specific,
       # so each preset gets its own.
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/${{ matrix.preset }}/_deps
           key: deps-${{ runner.os }}-${{ matrix.preset }}-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
