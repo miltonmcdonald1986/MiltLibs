@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keeps the actions in .github/workflows current. Dependabot can't see
+  # FetchContent pins, so googletest, GLM, raylib and raygui are bumped by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

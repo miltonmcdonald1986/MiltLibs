@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new push to a PR cancels that PR's in-progress run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.preset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Let every leg finish, so one compiler failing doesn't hide the others.
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, preset: gcc-debug }
+          - { os: ubuntu-24.04, preset: gcc-release }
+          - { os: ubuntu-24.04, preset: clang-debug }
+          - { os: ubuntu-24.04, preset: clang-release }
+          - { os: windows-latest, preset: msvc-debug }
+          - { os: windows-latest, preset: msvc-release }
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # C++23 needs GCC 14+ or Clang 18+. Clang uses g++-14's libstdc++.
+      # raylib is built from source for the runners and needs the X11/GL dev
+      # packages.
+      - name: Install toolchain
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build g++-14 clang-19 \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+
+      # The presets name plain gcc/g++ and clang/clang++, so point those at the
+      # versions installed above. The runner image already registers clang++
+      # as its own alternative, so it can't be a slave of clang, and --set
+      # overrides any higher-priority Clang the image registered.
+      - name: Select GCC 14 and Clang 19
+        if: runner.os == 'Linux'
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-14
+          for tool in clang clang++; do
+            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-19 100
+            sudo update-alternatives --set $tool /usr/bin/$tool-19
+          done
+          g++ --version
+          clang++ --version
+
+      # The msvc presets use architecture strategy "external", so cl must
+      # already be on PATH for x64, as in a VS developer prompt.
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # FetchContent downloads googletest, GLM, raylib and raygui into _deps.
+      # Their pins live in cmake/*.cmake and the libraries' CMakeLists.txt, so
+      # a change there starts a fresh cache. Build trees are compiler-specific,
+      # so each preset gets its own.
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: deps-${{ runner.os }}-${{ matrix.preset }}-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
+
+      - name: Configure, build and test
+        run: cmake --workflow --preset ${{ matrix.preset }}
