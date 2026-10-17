@@ -16,12 +16,18 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.preset }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     strategy:
       # Let every leg finish, so one compiler failing doesn't hide the others.
       fail-fast: false
       matrix:
-        preset: [gcc-debug, gcc-release, clang-debug, clang-release]
+        include:
+          - { os: ubuntu-24.04, preset: gcc-debug }
+          - { os: ubuntu-24.04, preset: gcc-release }
+          - { os: ubuntu-24.04, preset: clang-debug }
+          - { os: ubuntu-24.04, preset: clang-release }
+          - { os: windows-latest, preset: msvc-debug }
+          - { os: windows-latest, preset: msvc-release }
 
     steps:
       - uses: actions/checkout@v5
@@ -30,6 +36,7 @@ jobs:
       # raylib is built from source for the runners and needs the X11/GL dev
       # packages.
       - name: Install toolchain
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -41,6 +48,7 @@ jobs:
       # as its own alternative, so it can't be a slave of clang, and --set
       # overrides any higher-priority Clang the image registered.
       - name: Select GCC 14 and Clang 19
+        if: runner.os == 'Linux'
         run: |
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
             --slave /usr/bin/g++ g++ /usr/bin/g++-14
@@ -50,6 +58,14 @@ jobs:
           done
           g++ --version
           clang++ --version
+
+      # The msvc presets use architecture strategy "external", so cl must
+      # already be on PATH for x64, as in a VS developer prompt.
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Configure, build and test
         run: cmake --workflow --preset ${{ matrix.preset }}
