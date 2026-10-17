@@ -18,8 +18,7 @@ TriangleSettings draw_settings_panel(TriangleSettings current) {
 
     // raygui sliders work in float.
     auto speed = static_cast<float>(current.speed);
-    GuiSlider({70, 55, 120, 20}, "Speed", TextFormat("%.1f", current.speed), &speed,
-              0.0f, 6.0f);
+    GuiSlider({70, 55, 120, 20}, "Speed", TextFormat("%.1f", current.speed), &speed, 0.0f, 6.0f);
     current.speed = speed;
 
     return current;
