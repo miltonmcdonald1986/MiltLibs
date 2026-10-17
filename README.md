@@ -15,3 +15,9 @@ ctest --preset msvc-debug
 ```
 
 Presets: `msvc-debug`, `msvc-release`, `clang-debug`, `clang-release`, `gcc-debug`, `gcc-release`.
+
+`web-debug` and `web-release` build the runners for the browser with Emscripten (run `emsdk_env` first). They have no test presets.
+
+## Formatting
+
+Code is formatted with clang-format 19+ using the repo's `.clang-format`. CI pins clang-format 22.1.5 and fails on any unformatted `.hpp` or `.cpp`.
