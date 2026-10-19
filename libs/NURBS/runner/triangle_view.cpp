@@ -7,6 +7,8 @@
 #include <raylib.h>
 
 #include "framework/raylib_convert.hpp"
+#include "framework/viewport.hpp"
+#include "triangle_model.hpp"
 
 void draw_triangle(const TriangleModel& model, const milt::runner::Viewport& viewport) {
     using milt::runner::to_screen;

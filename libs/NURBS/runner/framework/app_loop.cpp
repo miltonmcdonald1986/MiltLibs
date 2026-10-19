@@ -1,5 +1,7 @@
 #include "app_loop.hpp"
 
+#include <functional>
+
 #include <raylib.h>
 
 #ifdef __EMSCRIPTEN__

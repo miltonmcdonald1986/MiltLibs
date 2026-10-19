@@ -4,6 +4,7 @@ Checks: >
   -*,
   bugprone-*,
   clang-analyzer-*,
+  misc-*,
   modernize-*,
   -modernize-use-trailing-return-type,
   performance-*,
@@ -17,6 +18,12 @@ Checks: >
   -cppcoreguidelines-pro-type-union-access
 WarningsAsErrors: '*'
 CheckOptions:
+  # glm's public headers forward to glm/ext and glm/detail without IWYU pragmas, so
+  # include-cleaner would ask for internal headers and call the public ones unused.
+  # Both separators, as in HeaderFilterRegex below.
+  misc-include-cleaner.IgnoreHeaders: 'glm[/\\].*'
+  # Plain structs with every member public are fine; mixed classes are still checked.
+  misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
   # Only the l suffix is easy to misread (as 1); lowercase f and u are fine.
   readability-uppercase-literal-suffix.NewSuffixes: 'L;LL;LU;LLU'
 # Every MiltLibs header (library, runner and test), but none from _deps. Paths on Windows

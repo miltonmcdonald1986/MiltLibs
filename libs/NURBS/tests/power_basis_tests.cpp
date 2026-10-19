@@ -12,6 +12,8 @@
 #include <glm/vec3.hpp>
 #include <gtest/gtest.h>
 
+#include <milt/nurbs/point.hpp>
+
 namespace {
 
 using milt::nurbs::horner1;
