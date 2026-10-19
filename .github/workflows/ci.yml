@@ -74,6 +74,39 @@ jobs:
       - name: Run clang-tidy
         run: run-clang-tidy.py -p build/clang-debug -quiet '^(?!.*/_deps/).*/libs/'
 
+  # Builds milt_docs, which fails on any Doxygen warning, such as an
+  # undocumented parameter. Doxygen is pinned to a release binary because its
+  # warnings change between versions; bump it together with any doc fixes it
+  # causes. The docs preset fetches nothing, so there's no cache. Configure
+  # still needs a C++ compiler, which the runner image's default g++ covers.
+  docs:
+    name: doxygen
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Doxygen and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build
+          curl -sSLf -o doxygen.tar.gz \
+            https://github.com/doxygen/doxygen/releases/download/Release_1_14_0/doxygen-1.14.0.linux.bin.tar.gz
+          echo "e5d6ae24d0bf3f0cdc4d8f146726b89ca323922f19441af99b1872d503665ad6  doxygen.tar.gz" | sha256sum -c
+          tar xzf doxygen.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/doxygen-1.14.0/bin" >> "$GITHUB_PATH"
+
+      - name: Build docs
+        run: |
+          cmake --preset docs
+          cmake --build --preset docs
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: build/docs/html
+          if-no-files-found: error
+
   build:
     name: ${{ matrix.preset }}
     runs-on: ${{ matrix.os }}
