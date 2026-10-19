@@ -27,6 +27,23 @@ if(MILTLIBS_BUILD_RUNNERS)
 
     FetchContent_MakeAvailable(raylib raygui)
 
+    # Under Emscripten, raylib's target exports -sEXPORTED_RUNTIME_METHODS=ccall.
+    # The default shell page's Fullscreen button (and raylib's ToggleFullscreen)
+    # call Module.requestFullscreen, which Emscripten 4.0.9+ no longer exports
+    # by default. Emscripten keeps only the last value of a -s setting, and
+    # raylib's lands after any the runner adds, so extend raylib's instead.
+    if(EMSCRIPTEN)
+        set(raylib_exports "-sEXPORTED_RUNTIME_METHODS=ccall")
+        get_target_property(raylib_link_options raylib INTERFACE_LINK_OPTIONS)
+        if(NOT raylib_exports IN_LIST raylib_link_options)
+            message(FATAL_ERROR "raylib no longer links with ${raylib_exports}; "
+                "update the requestFullscreen export in ${CMAKE_CURRENT_LIST_FILE}.")
+        endif()
+        list(TRANSFORM raylib_link_options
+            REPLACE "^${raylib_exports}$" "${raylib_exports},requestFullscreen")
+        set_target_properties(raylib PROPERTIES INTERFACE_LINK_OPTIONS "${raylib_link_options}")
+    endif()
+
     # milt_raygui: raygui's implementation, compiled once. Third-party code, so
     # it doesn't link milt_warnings. Under Emscripten, raylib's target already
     # exports -sUSE_GLFW=3, so it isn't repeated here.
