@@ -134,6 +134,11 @@ function(milt_add_runner name)
 
     if(EMSCRIPTEN)
         set_target_properties(${target} PROPERTIES SUFFIX ".html")
-        target_link_options(${target} PRIVATE -sALLOW_MEMORY_GROWTH=1)
+        # The default shell page's Fullscreen button calls
+        # Module.requestFullscreen, which Emscripten no longer exports unasked.
+        target_link_options(${target} PRIVATE
+            -sALLOW_MEMORY_GROWTH=1
+            -sEXPORTED_RUNTIME_METHODS=requestFullscreen
+        )
     endif()
 endfunction()
