@@ -54,7 +54,18 @@
     { "name": "gcc-debug", "displayName": "GCC Debug", "inherits": ["gcc", "debug"] },
     { "name": "gcc-release", "displayName": "GCC Release", "inherits": ["gcc", "release"] },
     { "name": "web-debug", "displayName": "Web Debug", "inherits": ["emscripten", "debug"] },
-    { "name": "web-release", "displayName": "Web Release", "inherits": ["emscripten", "release"] }
+    { "name": "web-release", "displayName": "Web Release", "inherits": ["emscripten", "release"] },
+    {
+      "name": "docs",
+      "displayName": "Docs",
+      "description": "Builds only the Doxygen API reference, into build/docs/html. Needs Doxygen on PATH.",
+      "inherits": "base",
+      "cacheVariables": {
+        "MILTLIBS_BUILD_DOCS": "ON",
+        "MILTLIBS_BUILD_TESTS": "OFF",
+        "MILTLIBS_BUILD_RUNNERS": "OFF"
+      }
+    }
   ],
   "buildPresets": [
     { "name": "msvc-debug", "configurePreset": "msvc-debug" },
@@ -65,7 +76,8 @@
     { "name": "gcc-debug", "configurePreset": "gcc-debug" },
     { "name": "gcc-release", "configurePreset": "gcc-release" },
     { "name": "web-debug", "configurePreset": "web-debug" },
-    { "name": "web-release", "configurePreset": "web-release" }
+    { "name": "web-release", "configurePreset": "web-release" },
+    { "name": "docs", "configurePreset": "docs", "targets": ["milt_docs"] }
   ],
   "testPresets": [
     {
