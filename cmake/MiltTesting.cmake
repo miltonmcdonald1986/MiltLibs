@@ -16,7 +16,12 @@ if(MILTLIBS_BUILD_TESTS)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 
+    # GoogleTest's sources are third-party, so the clang-tidy preset's
+    # CMAKE_CXX_CLANG_TIDY mustn't apply to them. The empty normal variable
+    # hides the cache entry until it's unset.
+    set(CMAKE_CXX_CLANG_TIDY "")
     FetchContent_MakeAvailable(googletest)
+    unset(CMAKE_CXX_CLANG_TIDY)
 endif()
 
 # milt_add_test(<name> SOURCES <src>... [DEPENDS <target>...])
