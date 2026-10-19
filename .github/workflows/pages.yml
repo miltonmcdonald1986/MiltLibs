@@ -1,0 +1,84 @@
+name: Pages
+
+# Publishes ci/pages/index.html at /, the Doxygen docs at /docs/ and the NURBS
+# runner at /nurbs/. The repo's Pages source must be set to "GitHub Actions".
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Deploys queue rather than cancel, so a deploy is never cut off midway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # Rebuilds what ci.yml's docs and web jobs build, with the same pins; keep
+  # the two in step.
+  build:
+    name: build site
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Doxygen and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build
+          curl -sSLf -o doxygen.tar.gz \
+            https://github.com/doxygen/doxygen/releases/download/Release_1_14_0/doxygen-1.14.0.linux.bin.tar.gz
+          echo "e5d6ae24d0bf3f0cdc4d8f146726b89ca323922f19441af99b1872d503665ad6  doxygen.tar.gz" | sha256sum -c
+          tar xzf doxygen.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/doxygen-1.14.0/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.10
+          actions-cache-folder: emsdk-cache
+
+      # Same key as ci.yml's web job, so the two share a cache.
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: build/web-release/_deps
+          key: deps-web-release-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
+
+      - name: Build docs
+        run: |
+          cmake --preset docs
+          cmake --build --preset docs
+
+      - name: Build web runners
+        run: cmake --workflow --preset web-release
+
+      # The runner's page loads milt_nurbs_runner.js by name, so only the
+      # .html needs renaming.
+      - name: Assemble site
+        run: |
+          mkdir -p site/nurbs
+          cp ci/pages/index.html site/
+          cp -r build/docs/html site/docs
+          cp build/web-release/libs/NURBS/milt_nurbs_runner.js \
+             build/web-release/libs/NURBS/milt_nurbs_runner.wasm site/nurbs/
+          cp build/web-release/libs/NURBS/milt_nurbs_runner.html site/nurbs/index.html
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

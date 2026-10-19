@@ -173,8 +173,8 @@ jobs:
       - name: Configure, build and test
         run: cmake --workflow --preset ${{ matrix.preset }}
 
-  # Build-only: tests are off under Emscripten. The runner is uploaded so the
-  # Pages deploy can publish it.
+  # Build-only: tests are off under Emscripten. The runner is uploaded so a
+  # PR's build can be tried by hand; pages.yml rebuilds it for deploys.
   web:
     name: web-release
     runs-on: ubuntu-24.04
