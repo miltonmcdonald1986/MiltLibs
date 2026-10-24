@@ -34,7 +34,7 @@ jobs:
           echo "$RUNNER_TEMP/doxygen-1.14.0/bin" >> "$GITHUB_PATH"
 
       - name: Set up Emscripten
-        uses: mymindstorm/setup-emsdk@v14
+        uses: mymindstorm/setup-emsdk@v16
         with:
           version: 4.0.10
           actions-cache-folder: emsdk-cache

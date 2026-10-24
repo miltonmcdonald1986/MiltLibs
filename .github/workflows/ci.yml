@@ -188,7 +188,7 @@ jobs:
 
       # Sets EMSDK, which the emscripten preset's toolchainFile reads.
       - name: Set up Emscripten
-        uses: mymindstorm/setup-emsdk@v14
+        uses: mymindstorm/setup-emsdk@v16
         with:
           version: 4.0.10
           actions-cache-folder: emsdk-cache
