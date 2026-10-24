@@ -18,6 +18,8 @@ Presets: `msvc-debug`, `msvc-release`, `clang-debug`, `clang-release`, `gcc-debu
 
 `web-debug` and `web-release` build the runners for the browser with Emscripten (run `emsdk_env` first). They have no test presets.
 
+`coverage` is `gcc-debug` built with `--coverage`; CI uploads its report to Codecov.
+
 `docs` builds only the Doxygen API reference; see `cmake/MiltDocs.cmake`.
 
 ## Formatting

@@ -173,6 +173,60 @@ jobs:
       - name: Configure, build and test
         run: cmake --workflow --preset ${{ matrix.preset }}
 
+  # Report-only: runs the tests from the coverage preset and uploads line and
+  # branch coverage of libs/ to Codecov. It isn't a required check, and an
+  # upload failure doesn't fail the job. .github/codecov.yml keeps Codecov's
+  # own statuses informational. gcovr is pinned from PyPI for the same reason
+  # as clang-format, and is given gcov-14 to match GCC 14. A header-only
+  # library's templates only count where a test instantiates them.
+  coverage:
+    name: coverage
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build g++-14
+          pipx install gcovr==8.3
+
+      # See the build job's step of the same name.
+      - name: Select GCC 14
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-14
+
+      # Runners are off, so _deps holds googletest and GLM only.
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: build/coverage/_deps
+          key: deps-coverage-${{ hashFiles('cmake/*.cmake', 'libs/**/CMakeLists.txt') }}
+
+      - name: Configure, build and test
+        run: cmake --workflow --preset coverage
+
+      # Tests and anything fetched into build/ are left out of the report.
+      - name: Generate report
+        run: |
+          gcovr --gcov-executable gcov-14 --root . build/coverage \
+            --filter 'libs/' --exclude 'libs/.*/tests/' \
+            --exclude-unreachable-branches --exclude-throw-branches \
+            --cobertura coverage.xml --print-summary
+
+      # Uploads gcovr's report only. By default the uploader also runs its own
+      # gcov, which is the image's default rather than gcov-14, and picks up
+      # every .gcov and coverage file it finds, googletest's included.
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          disable_search: true
+          plugins: noop
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
   # Build-only: tests are off under Emscripten. The runner is uploaded so a
   # PR's build can be tried by hand; pages.yml rebuilds it for deploys.
   web:
