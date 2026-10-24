@@ -101,7 +101,7 @@ jobs:
           cmake --build --preset docs
 
       - name: Upload docs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-docs
           path: build/docs/html
@@ -205,7 +205,7 @@ jobs:
         run: cmake --workflow --preset web-release
 
       - name: Upload NURBS runner
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nurbs-runner-web
           path: build/web-release/libs/NURBS/milt_nurbs_runner.*
