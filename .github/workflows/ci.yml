@@ -138,6 +138,11 @@ jobs:
             ninja-build g++-14 clang-19 \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
 
+      # Ubuntu's clang-19 package doesn't ship the sanitizer runtimes.
+      - name: Install sanitizer runtimes
+        if: matrix.preset == 'clang-asan'
+        run: sudo apt-get install -y --no-install-recommends libclang-rt-19-dev
+
       # The presets name plain gcc/g++ and clang/clang++, so point those at the
       # versions installed above. The runner image already registers clang++
       # as its own alternative, so it can't be a slave of clang, and --set
