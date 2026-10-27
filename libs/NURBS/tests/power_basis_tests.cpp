@@ -151,13 +151,3 @@ TEST(Horner1, FloatScalar) {
     const float c = horner1(coefficients, 2.0f);
     EXPECT_FLOAT_EQ(c, 17.0f);
 }
-
-// TEMPORARY: checks that the clang-asan leg fails on a heap overflow. Revert
-// before merging.
-TEST(SanitizerCanary, HeapBufferOverflow) {
-    volatile std::size_t index = 2;
-    auto* values = new int[2]{1, 2}; // NOLINT
-    const int value = values[index]; // NOLINT
-    delete[] values;                 // NOLINT
-    EXPECT_NE(value, -1);
-}
