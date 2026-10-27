@@ -51,6 +51,18 @@
       "inherits": "clang-debug",
       "cacheVariables": { "CMAKE_CXX_CLANG_TIDY": "clang-tidy" }
     },
+    {
+      "name": "clang-asan",
+      "displayName": "Clang Debug + ASan/UBSan",
+      "description": "clang-debug, with AddressSanitizer, UndefinedBehaviorSanitizer and libstdc++ assertions. Any finding aborts the test. Linux only. Runners are off, so raylib isn't fetched.",
+      "inherits": "clang-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -D_GLIBCXX_ASSERTIONS",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
+        "MILTLIBS_BUILD_RUNNERS": "OFF"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    },
     { "name": "gcc-debug", "displayName": "GCC Debug", "inherits": ["gcc", "debug"] },
     { "name": "gcc-release", "displayName": "GCC Release", "inherits": ["gcc", "release"] },
     {
@@ -83,6 +95,7 @@
     { "name": "clang-debug", "configurePreset": "clang-debug" },
     { "name": "clang-release", "configurePreset": "clang-release" },
     { "name": "clang-tidy", "configurePreset": "clang-tidy" },
+    { "name": "clang-asan", "configurePreset": "clang-asan" },
     { "name": "gcc-debug", "configurePreset": "gcc-debug" },
     { "name": "gcc-release", "configurePreset": "gcc-release" },
     { "name": "coverage", "configurePreset": "coverage" },
@@ -101,6 +114,12 @@
     { "name": "msvc-release", "inherits": "base", "configurePreset": "msvc-release" },
     { "name": "clang-debug", "inherits": "base", "configurePreset": "clang-debug" },
     { "name": "clang-release", "inherits": "base", "configurePreset": "clang-release" },
+    {
+      "name": "clang-asan",
+      "inherits": "base",
+      "configurePreset": "clang-asan",
+      "environment": { "UBSAN_OPTIONS": "print_stacktrace=1" }
+    },
     { "name": "gcc-debug", "inherits": "base", "configurePreset": "gcc-debug" },
     { "name": "gcc-release", "inherits": "base", "configurePreset": "gcc-release" },
     { "name": "coverage", "inherits": "base", "configurePreset": "coverage" }
@@ -136,6 +155,14 @@
         { "type": "configure", "name": "clang-release" },
         { "type": "build", "name": "clang-release" },
         { "type": "test", "name": "clang-release" }
+      ]
+    },
+    {
+      "name": "clang-asan",
+      "steps": [
+        { "type": "configure", "name": "clang-asan" },
+        { "type": "build", "name": "clang-asan" },
+        { "type": "test", "name": "clang-asan" }
       ]
     },
     {
