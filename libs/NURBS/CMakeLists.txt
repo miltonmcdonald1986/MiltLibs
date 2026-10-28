@@ -19,5 +19,6 @@ endif()
 
 milt_add_runner(nurbs_runner
     SOURCES runner/main.cpp runner/triangle_view.cpp runner/framework/app_loop.cpp
+            runner/framework/draw3d.cpp
     DEPENDS Milt::nurbs milt_raygui
 )
