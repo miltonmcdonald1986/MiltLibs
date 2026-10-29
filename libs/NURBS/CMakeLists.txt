@@ -18,7 +18,7 @@ if(TARGET milt_nurbs_runner_tests)
 endif()
 
 milt_add_runner(nurbs_runner
-    SOURCES runner/main.cpp runner/triangle_view.cpp runner/framework/app_loop.cpp
+    SOURCES runner/main.cpp runner/horner_view.cpp runner/framework/app_loop.cpp
             runner/framework/draw3d.cpp
     DEPENDS Milt::nurbs milt_raygui
 )
