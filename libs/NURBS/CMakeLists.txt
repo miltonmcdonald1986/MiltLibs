@@ -9,7 +9,7 @@ milt_add_test(nurbs_tests
 # build even when runners are off.
 milt_add_test(nurbs_runner_tests
     SOURCES tests/horner_model_tests.cpp tests/horner_bounds_tests.cpp
-            tests/horner_presets_tests.cpp
+            tests/horner_presets_tests.cpp tests/orbit_tests.cpp
     DEPENDS Milt::nurbs glm::glm
 )
 # milt_add_test does nothing when tests are off, so the target may not exist.
@@ -20,6 +20,7 @@ endif()
 milt_add_runner(nurbs_runner
     SOURCES runner/main.cpp runner/horner_view.cpp runner/framework/app_loop.cpp
             runner/framework/draw3d.cpp runner/framework/fonts.cpp
+            runner/framework/orbit_camera.cpp
     DEPENDS Milt::nurbs milt_raygui
 )
 # milt_add_runner does nothing when runners are off, so the target may not exist.

@@ -12,6 +12,8 @@ int main() {
     Scene scene = make_scene(state.preset, screen);
 
     milt::runner::run_app(config, [&] {
+        scene = update_camera(scene);
+
         ClearBackground(RAYWHITE);
         BeginMode3D(scene.camera);
         draw_scene(scene, state.u);

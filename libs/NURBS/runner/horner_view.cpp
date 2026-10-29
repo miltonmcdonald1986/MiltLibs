@@ -6,13 +6,13 @@
 #include <cstddef>
 #include <format>
 #include <numbers>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <raygui.h>
@@ -22,6 +22,8 @@
 
 #include "framework/draw3d.hpp"
 #include "framework/fonts.hpp"
+#include "framework/orbit.hpp"
+#include "framework/orbit_camera.hpp"
 #include "framework/raylib_convert.hpp"
 #include "horner_model.hpp"
 #include "horner_presets.hpp"
@@ -58,56 +60,73 @@ constexpr float section_gap = 12.0f;    // Between the panel's sections.
 constexpr auto font_size = static_cast<float>(milt::runner::ui_font_size);
 constexpr float spacing = 0.0f; // Glyph spacing, in pixels, on top of the font's own.
 
-// An orthographic camera looking at the bounds from `toward_eye`, a unit vector, with `up`
-// pointing up the screen. It frames `extent`, the world width and height to show, in the part
-// of the screen right of the panel.
-Camera3D framing_camera(const Bounds& bounds, glm::dvec3 toward_eye, glm::dvec3 up,
-                        glm::dvec2 extent, ScreenSize screen) {
+// The panel's box on screen, sized to hold a caption and coefficient list this long.
+Rectangle panel_box(std::size_t caption_lines, std::size_t coefficient_count) {
+    // The group box's title sits on its top edge, so the contents start a title's height down.
+    const float height = font_size + 2.0f * control_height + 3.0f * section_gap +
+                         static_cast<float>(caption_lines + coefficient_count) * line_height +
+                         panel_padding;
+    return {.x = panel_margin,
+            .y = panel_margin,
+            .width = panel_width - 2.0f * panel_margin,
+            .height = height};
+}
+
+// The fovy, the visible height in world units, at which an orthographic camera shows
+// `extent`, a world width and height, in the area right of the panel.
+double fitted_fovy(glm::dvec2 extent, ScreenSize screen) {
+    const double aspect = (screen.width - double{panel_width}) / screen.height;
+    return std::max(extent.y, extent.x / aspect);
+}
+
+// How far left of a scene's center a camera's target goes, in view heights, so the center
+// shows mid-way across the area right of the panel instead of mid-screen: half the panel's
+// width.
+double panel_shift(ScreenSize screen) {
+    return panel_width / 2.0 / screen.height;
+}
+
+// Looks straight down the math z axis and fits the bounds' x-y extent.
+Camera3D top_down_camera(const Bounds& bounds, ScreenSize screen) {
     using milt::runner::to_vector3;
 
-    const double aspect = (screen.width - double{panel_width}) / screen.height;
-    // An orthographic camera's fovy is the visible height in world units.
-    const double fovy = std::max(extent.y, extent.x / aspect);
+    // Extra room around the bounds, as a factor of their size.
+    constexpr double margin = 1.3;
 
-    // Shift the camera left by half the panel's width, so the bounds' center lands in the
-    // middle of the area right of the panel instead of mid-screen.
-    const glm::dvec3 right = glm::normalize(glm::cross(up, toward_eye));
-    const double units_per_pixel = fovy / screen.height;
-    const glm::dvec3 target = bounds.center() - right * (panel_width / 2.0 * units_per_pixel);
-    // The shift is across the view, so the bounds still lie within radius() of the target
-    // along it, and this far out none of them are behind the near plane.
-    const glm::dvec3 eye = target + toward_eye * (bounds.radius() + 1.0);
+    const double fovy = fitted_fovy(glm::dvec2{bounds.max - bounds.min} * margin, screen);
+    const glm::dvec3 target = bounds.center() - glm::dvec3{panel_shift(screen) * fovy, 0.0, 0.0};
+    // Far enough above the bounds that none of it is behind the near plane.
+    const glm::dvec3 eye = target + glm::dvec3{0.0, 0.0, bounds.radius() + 1.0};
 
     return {
         .position = to_vector3(eye),
         .target = to_vector3(target),
-        .up = to_vector3(up),
+        .up = to_vector3({0.0, 1.0, 0.0}),
         .fovy = static_cast<float>(fovy),
         .projection = CAMERA_ORTHOGRAPHIC,
     };
 }
 
-// Looks straight down the math z axis and fits the bounds' x-y extent.
-Camera3D top_down_camera(const Bounds& bounds, ScreenSize screen) {
-    // Extra room around the bounds, as a factor of their size.
-    constexpr double margin = 1.3;
-
-    const glm::dvec2 size{bounds.max - bounds.min};
-    return framing_camera(bounds, {0.0, 0.0, 1.0}, {0.0, 1.0, 0.0}, size * margin, screen);
-}
-
-// Looks from oblique_yaw and oblique_pitch and fits the sphere around the bounds, so the
-// bounds fit from any angle.
-Camera3D oblique_camera(const Bounds& bounds, ScreenSize screen) {
+// Starts from oblique_yaw and oblique_pitch and fits the sphere around the bounds, so the
+// bounds fit from any angle the view is turned to.
+milt::runner::Orbit oblique_orbit(const Bounds& bounds, ScreenSize screen) {
     // Extra room around the sphere, as a factor of its size. The sphere is already looser
     // than the bounds, so it needs less than top_down_camera.
     constexpr double margin = 1.1;
 
-    const glm::dvec3 toward_eye{std::sin(oblique_yaw) * std::cos(oblique_pitch),
-                                -std::cos(oblique_yaw) * std::cos(oblique_pitch),
-                                std::sin(oblique_pitch)};
-    const glm::dvec2 diameter{2.0 * bounds.radius()};
-    return framing_camera(bounds, toward_eye, {0.0, 0.0, 1.0}, diameter * margin, screen);
+    const double fovy = fitted_fovy(glm::dvec2{2.0 * bounds.radius()} * margin, screen);
+    return {
+        .center = bounds.center(),
+        // The target is the center shifted across the view, so the bounds still lie within
+        // radius() of it along the view, and this far out none are behind the near plane.
+        .distance = bounds.radius() + 1.0,
+        .yaw = oblique_yaw,
+        .pitch = oblique_pitch,
+        .fovy = fovy,
+        .min_fovy = fovy / 8.0,
+        .max_fovy = fovy * 2.0,
+        .center_shift = panel_shift(screen),
+    };
 }
 
 // The color of a0's dot and of each term's arrow: a0 black, a1 blue, a2 orange, a3 and up
@@ -199,9 +218,29 @@ Scene make_scene(std::size_t preset, ScreenSize screen) {
     assert(preset < curve_presets.size());
     const CurvePreset& chosen = curve_presets.at(preset);
     const Bounds bounds = fit_bounds(chosen.coefficients, bounds_samples);
-    const Camera3D camera =
-        chosen.is_3d ? oblique_camera(bounds, screen) : top_down_camera(bounds, screen);
-    return {.preset = chosen, .bounds = bounds, .camera = camera};
+    if (!chosen.is_3d) {
+        return {.preset = chosen,
+                .bounds = bounds,
+                .camera = top_down_camera(bounds, screen),
+                .orbit = std::nullopt};
+    }
+
+    const milt::runner::OrbitControl orbit{.orbit = oblique_orbit(bounds, screen)};
+    return {.preset = chosen,
+            .bounds = bounds,
+            .camera = milt::runner::orbit_camera(orbit.orbit),
+            .orbit = orbit};
+}
+
+Scene update_camera(Scene scene) {
+    if (scene.orbit) {
+        const Rectangle panel =
+            panel_box(wrap_text(scene.preset.caption, panel_content_width).size(),
+                      scene.preset.coefficients.size());
+        scene.orbit = milt::runner::update_orbit(*scene.orbit, panel);
+        scene.camera = milt::runner::orbit_camera(scene.orbit->orbit);
+    }
+    return scene;
 }
 
 void draw_scene(const Scene& scene, double u) {
@@ -284,22 +323,15 @@ ViewState draw_controls(const CurvePreset& preset, ViewState current) {
     const std::vector<std::string> caption = wrap_text(preset.caption, panel_content_width);
     const auto coefficients = preset.coefficients;
 
-    // The group box's title sits on its top edge, so the contents start below the title.
-    constexpr float top = panel_margin + font_size;
-    const float height = (top - panel_margin) + 2.0f * control_height + 3.0f * section_gap +
-                         static_cast<float>(caption.size() + coefficients.size()) * line_height +
-                         panel_padding;
     // A group box is only an outline, so fill it to keep the scene from showing through.
-    const Rectangle box{.x = panel_margin,
-                        .y = panel_margin,
-                        .width = panel_width - 2.0f * panel_margin,
-                        .height = height};
+    const Rectangle box = panel_box(caption.size(), coefficients.size());
     DrawRectangleRec(box,
                      GetColor(static_cast<unsigned int>(GuiGetStyle(DEFAULT, BACKGROUND_COLOR))));
     GuiGroupBox(box, "Curve");
 
     constexpr float left = panel_margin + panel_padding;
-    float y = top;
+    // The group box's title sits on its top edge, so the contents start below the title.
+    float y = panel_margin + font_size;
 
     // GuiToggleGroup takes the size of one toggle and lays the rest out in a row.
     const auto toggle_count = static_cast<float>(curve_presets.size());
