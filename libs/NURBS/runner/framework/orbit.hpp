@@ -7,6 +7,8 @@
 #include <cmath>
 #include <numbers>
 
+#include <glm/geometric.hpp>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 namespace milt::runner {
@@ -21,7 +23,9 @@ inline constexpr double max_orbit_pitch = 85.0 * std::numbers::pi / 180.0;
 ///
 /// All points and directions are in z-up math coordinates. The view's up direction is math z.
 struct Orbit {
-    glm::dvec3 center;   ///< The point orbited.
+    glm::dvec3 center;   ///< Where the view starts out centered, before any panning.
+    glm::dvec3 pan;      ///< How far panning has moved the view's center from `center`.
+    double max_pan;      ///< The longest `pan` can get, so the scene can't be lost off-screen.
     double distance;     ///< How far the eye is from the target. Doesn't change the view's size.
     double yaw;          ///< The eye's angle around z in radians, from the -y side toward +x.
     double pitch;        ///< The eye's angle above the x-y plane in radians.
@@ -52,14 +56,36 @@ struct Orbit {
     return {std::cos(yaw), std::sin(yaw), 0.0};
 }
 
-/// @brief The point the view looks at: the center, moved so it shows center_shift right of
+/// @brief The unit vector pointing up the screen.
+///
+/// It's perpendicular to toward_eye(yaw, pitch) and screen_right(yaw), and is math z itself
+/// at pitch 0.
+///
+/// @param yaw   The angle around z in radians, from the -y side toward +x.
+/// @param pitch The angle above the x-y plane in radians.
+///
+/// @return The direction, toward_eye(yaw, pitch) × screen_right(yaw).
+[[nodiscard]] inline glm::dvec3 screen_up(double yaw, double pitch) {
+    return {-std::sin(pitch) * std::sin(yaw), std::sin(pitch) * std::cos(yaw), std::cos(pitch)};
+}
+
+/// @brief The point the view turns around: `center` moved by `pan`.
+///
+/// @param orbit The view.
+///
+/// @return The pivot.
+[[nodiscard]] inline glm::dvec3 orbit_pivot(const Orbit& orbit) {
+    return orbit.center + orbit.pan;
+}
+
+/// @brief The point the view looks at: the pivot, moved so it shows center_shift right of
 /// mid-screen.
 ///
 /// @param orbit The view.
 ///
 /// @return The target.
 [[nodiscard]] inline glm::dvec3 orbit_target(const Orbit& orbit) {
-    return orbit.center - screen_right(orbit.yaw) * (orbit.center_shift * orbit.fovy);
+    return orbit_pivot(orbit) - screen_right(orbit.yaw) * (orbit.center_shift * orbit.fovy);
 }
 
 /// @brief The eye's position, `distance` from the target toward the eye.
@@ -77,7 +103,7 @@ struct OrbitTurn {
     double pitch; ///< Radians to add to the pitch.
 };
 
-/// @brief Turns the view around its center.
+/// @brief Turns the view around its pivot.
 ///
 /// @param orbit The view.
 /// @param turn  The angles to add. The pitch is then clamped to max_orbit_pitch.
@@ -100,6 +126,30 @@ struct OrbitTurn {
 /// @return The zoomed view.
 [[nodiscard]] inline Orbit zoomed(Orbit orbit, double factor) {
     orbit.fovy = std::clamp(orbit.fovy * factor, orbit.min_fovy, orbit.max_fovy);
+    return orbit;
+}
+
+/// @brief Slides the view across the screen, so the scene follows a mouse drag.
+///
+/// The pivot moves within the plane of the screen, and `pan` is then shortened to at most
+/// `max_pan`.
+///
+/// @param orbit         The view.
+/// @param drag          How far the scene is dragged, in pixels, with y down the screen.
+/// @param screen_height The screen's height in pixels, which the view's fovy spans.
+///
+/// @pre `screen_height > 0`.
+///
+/// @return The panned view.
+[[nodiscard]] inline Orbit panned(Orbit orbit, glm::dvec2 drag, double screen_height) {
+    const double units_per_pixel = orbit.fovy / screen_height;
+    // The scene follows the mouse, so the view moves the other way: left for a drag to the
+    // right, and up for a drag down the screen.
+    orbit.pan += (screen_up(orbit.yaw, orbit.pitch) * drag.y - screen_right(orbit.yaw) * drag.x) *
+                 units_per_pixel;
+    if (const double length = glm::length(orbit.pan); length > orbit.max_pan) {
+        orbit.pan *= orbit.max_pan / length;
+    }
     return orbit;
 }
 

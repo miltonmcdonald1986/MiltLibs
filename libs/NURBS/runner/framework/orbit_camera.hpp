@@ -9,17 +9,19 @@
 
 namespace milt::runner {
 
-/// @brief An Orbit and the state of the mouse drag turning it.
+/// @brief An Orbit and the state of the mouse drags moving it.
 struct OrbitControl {
-    Orbit orbit;           ///< The view.
-    bool dragging = false; ///< Whether a left-button drag that turns the view is under way.
+    Orbit orbit;          ///< The view.
+    bool turning = false; ///< Whether a left-button drag that turns the view is under way.
+    bool panning = false; ///< Whether a right- or middle-button drag that pans is under way.
 };
 
-/// @brief Turns and zooms the view from this frame's mouse input.
+/// @brief Turns, pans and zooms the view from this frame's mouse input.
 ///
 /// A left-button drag turns the view: across the screen changes the yaw, and up and down the
-/// pitch. The mouse wheel zooms. Input that starts inside `ignored` does neither, so that
-/// working a control drawn there doesn't move the view.
+/// pitch. A right- or middle-button drag pans, so the scene follows the mouse. The mouse wheel
+/// zooms. Input that starts inside `ignored` does none of these, so that working a control
+/// drawn there doesn't move the view.
 ///
 /// @param control The view and drag state.
 /// @param ignored A screen rectangle, in pixels, where drags and the wheel are left alone.

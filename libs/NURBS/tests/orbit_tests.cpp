@@ -21,6 +21,8 @@ void expect_near(glm::dvec3 actual, glm::dvec3 expected) {
 
 constexpr Orbit orbit{
     .center = {1.0, 2.0, 3.0},
+    .pan = {0.0, 0.0, 0.0},
+    .max_pan = 2.0,
     .distance = 5.0,
     .yaw = 0.6,
     .pitch = 0.4,
@@ -89,4 +91,33 @@ TEST(Orbit, ZoomedScalesTheFovy) {
 TEST(Orbit, ZoomedClampsTheFovy) {
     EXPECT_EQ(milt::runner::zoomed(orbit, 0.01).fovy, orbit.min_fovy);
     EXPECT_EQ(milt::runner::zoomed(orbit, 100.0).fovy, orbit.max_fovy);
+}
+
+TEST(Orbit, ScreenUpIsAcrossTheViewAndUpAtLevel) {
+    const glm::dvec3 up = milt::runner::screen_up(0.6, 0.4);
+    EXPECT_NEAR(glm::length(up), 1.0, tolerance);
+    EXPECT_NEAR(glm::dot(up, milt::runner::toward_eye(0.6, 0.4)), 0.0, tolerance);
+    EXPECT_NEAR(glm::dot(up, milt::runner::screen_right(0.6)), 0.0, tolerance);
+    expect_near(milt::runner::screen_up(0.6, 0.0), {0.0, 0.0, 1.0});
+}
+
+TEST(Orbit, PannedMovesThePivotAgainstTheDrag) {
+    // fovy 4 over 400 pixels is 0.01 world units per pixel, so a drag of (30, 40) pixels
+    // moves the pivot 0.3 left and 0.4 up the screen.
+    const Orbit moved = milt::runner::panned(orbit, {30.0, 40.0}, 400.0);
+    expect_near(moved.pan, milt::runner::screen_up(orbit.yaw, orbit.pitch) * 0.4 -
+                               milt::runner::screen_right(orbit.yaw) * 0.3);
+    expect_near(milt::runner::orbit_pivot(moved), orbit.center + moved.pan);
+    EXPECT_EQ(moved.center, orbit.center);
+}
+
+TEST(Orbit, PannedStopsAtMaxPan) {
+    const Orbit moved = milt::runner::panned(orbit, {100000.0, 0.0}, 400.0);
+    EXPECT_NEAR(glm::length(moved.pan), orbit.max_pan, tolerance);
+    expect_near(moved.pan, -milt::runner::screen_right(orbit.yaw) * orbit.max_pan);
+}
+
+TEST(Orbit, TargetFollowsThePan) {
+    const Orbit moved = milt::runner::panned(orbit, {30.0, 40.0}, 400.0);
+    expect_near(milt::runner::orbit_target(moved) - milt::runner::orbit_target(orbit), moved.pan);
 }

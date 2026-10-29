@@ -120,9 +120,14 @@ milt::runner::Orbit oblique_orbit(const Bounds& bounds, ScreenSize screen) {
     const double fovy = fitted_fovy(glm::dvec2{2.0 * bounds.radius()} * margin, screen);
     return {
         .center = bounds.center(),
-        // The target is the center shifted across the view, so the bounds still lie within
-        // radius() of it along the view, and this far out none are behind the near plane.
-        .distance = bounds.radius() + 1.0,
+        .pan = {0.0, 0.0, 0.0},
+        // Enough to bring any point of the bounds to mid-view, however far it's zoomed in.
+        .max_pan = bounds.radius(),
+        // The bounds lie within radius() of the center and the pivot within max_pan of it,
+        // and the target is the pivot shifted across the view. So along the view the bounds
+        // lie within 2 * radius() of the target, and this far out none are behind the near
+        // plane.
+        .distance = 2.0 * bounds.radius() + 1.0,
         .yaw = oblique_yaw,
         .pitch = oblique_pitch,
         .fovy = fovy,
