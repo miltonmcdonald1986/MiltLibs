@@ -16,6 +16,7 @@ int main() {
         BeginMode3D(scene.camera);
         draw_scene(scene, state.u);
         EndMode3D();
+        draw_labels(scene, state.u);
         state = draw_controls(scene.preset, state);
     });
 }

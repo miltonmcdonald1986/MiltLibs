@@ -19,6 +19,14 @@ endif()
 
 milt_add_runner(nurbs_runner
     SOURCES runner/main.cpp runner/horner_view.cpp runner/framework/app_loop.cpp
-            runner/framework/draw3d.cpp
+            runner/framework/draw3d.cpp runner/framework/fonts.cpp
     DEPENDS Milt::nurbs milt_raygui
 )
+# milt_add_runner does nothing when runners are off, so the target may not exist.
+if(TARGET milt_nurbs_runner)
+    milt_embed_file(milt_nurbs_runner
+        FILE runner/assets/NotoSans-Regular.ttf
+        NAME noto_sans_regular
+        NAMESPACE milt::runner
+    )
+endif()

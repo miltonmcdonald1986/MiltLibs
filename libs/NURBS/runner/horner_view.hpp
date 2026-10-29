@@ -32,13 +32,28 @@ struct Scene {
 /// @return The preset, its bounds and the camera.
 [[nodiscard]] Scene make_scene(const CurvePreset& preset, double aspect);
 
-/// @brief Draws a ground grid, the curve on u in [0, 1] and a marker at the curve point C(u).
+/// @brief Draws a ground grid, the curve on u in [0, 1] and how Horner's method reaches C(u).
+///
+/// The evaluation is drawn as the term chain: a dot at a0, then arrows u*a1, u^2*a2, ...
+/// placed tip to tail and colored by degree, the last of which ends at a marker on the curve
+/// point C(u).
 ///
 /// Call it between `BeginMode3D(scene.camera)` and `EndMode3D`.
 ///
-/// @param scene The curve to draw and its bounds, which set the marker's size.
-/// @param u     The parameter value to mark.
+/// @param scene The curve to draw and its bounds, which set the sizes of the dots and arrows.
+/// @param u     The parameter value to evaluate.
 void draw_scene(const Scene& scene, double u);
+
+/// @brief Labels each arrow of the term chain with its term, such as "u²·a₂".
+///
+/// Labels sit beside their arrow's midpoint on screen, in the arrow's color, in ui_font(). Arrows
+/// too short on screen to label clearly are skipped.
+///
+/// Call it between `BeginDrawing` and `EndDrawing`, after `EndMode3D`.
+///
+/// @param scene The curve and the camera it's drawn with.
+/// @param u     The parameter value being evaluated.
+void draw_labels(const Scene& scene, double u);
 
 /// @brief Draws a raygui panel, titled with the preset's name, holding the u slider.
 ///

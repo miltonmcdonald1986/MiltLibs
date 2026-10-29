@@ -20,6 +20,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(MiltCompileOptions)
 include(MiltDocs)
+include(MiltEmbed)
 include(MiltLibrary)
 include(MiltRaylib)
 include(MiltTesting)
