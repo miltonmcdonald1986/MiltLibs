@@ -5,9 +5,11 @@
 #include <cmath>
 #include <cstddef>
 #include <format>
+#include <iterator>
 #include <numbers>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -17,6 +19,7 @@
 #include <glm/vec3.hpp>
 #include <raygui.h>
 #include <raylib.h>
+#include <rlgl.h>
 
 #include <milt/nurbs/power_basis.hpp>
 
@@ -212,6 +215,65 @@ std::string preset_names() {
     return names;
 }
 
+// The curve on u in [0, 1], as the curve_segments + 1 ends of its polyline's segments.
+std::vector<glm::dvec3> curve_polyline(std::span<const glm::dvec3> coefficients) {
+    std::vector<glm::dvec3> points;
+    points.reserve(curve_segments + 1);
+    for (int i = 0; i <= curve_segments; ++i) {
+        points.push_back(
+            milt::nurbs::horner1(coefficients, i / static_cast<double>(curve_segments)));
+    }
+    return points;
+}
+
+void draw_polyline(std::span<const glm::dvec3> points, Color color) {
+    using milt::runner::to_vector3;
+    for (std::size_t i = 1; i < points.size(); ++i) {
+        DrawLine3D(to_vector3(points[i - 1]), to_vector3(points[i]), color);
+    }
+}
+
+// The math z of the floor that a 3D preset's grid and shadows lie on: a little below the
+// bounds, so shadows of anything lying on their bottom face don't fight it for depth.
+double floor_z(const Bounds& bounds) {
+    constexpr double gap = 0.1; // As a fraction of Bounds::radius().
+    return bounds.min.z - gap * bounds.radius();
+}
+
+// A 3D preset's depth cues, which an orthographic view otherwise lacks: a grid on the floor
+// under the bounds, the curve's shadow on it, and a line dropped from C(u) to its shadow.
+void draw_floor(const Scene& scene, const std::vector<glm::dvec3>& curve, glm::dvec3 tip) {
+    using milt::runner::to_vector3;
+
+    constexpr float grid_spacing = 0.25f;
+    const Color shadow_color = Fade(GRAY, 0.5f);
+
+    const double floor = floor_z(scene.bounds);
+    const auto on_floor = [floor](glm::dvec3 p) { return glm::dvec3{p.x, p.y, floor}; };
+
+    // DrawGrid draws on raylib's ground plane around the origin, so move it under the bounds.
+    // Enough slices to cover the bounds and a cell beyond each side, but no more, so the
+    // grid stays inside the camera's depth range from every angle.
+    const glm::dvec3 center = scene.bounds.center();
+    const glm::dvec3 size = scene.bounds.max - scene.bounds.min;
+    const int slices =
+        2 + 2 * static_cast<int>(std::ceil(std::max(size.x, size.y) / 2.0 / grid_spacing));
+    const Vector3 grid_center = to_vector3(on_floor(center));
+    rlPushMatrix();
+    rlTranslatef(grid_center.x, grid_center.y, grid_center.z);
+    DrawGrid(slices, grid_spacing);
+    rlPopMatrix();
+
+    std::vector<glm::dvec3> shadow;
+    shadow.reserve(curve.size());
+    std::ranges::transform(curve, std::back_inserter(shadow), on_floor);
+    draw_polyline(shadow, shadow_color);
+
+    DrawLine3D(to_vector3(tip), to_vector3(on_floor(tip)), Fade(MAROON, 0.5f));
+    DrawSphere(to_vector3(on_floor(tip)), static_cast<float>(marker_radius * scene.bounds.radius()),
+               shadow_color);
+}
+
 } // namespace
 
 Scene make_scene(std::size_t preset, ScreenSize screen) {
@@ -250,18 +312,18 @@ void draw_scene(const Scene& scene, double u) {
 
     const auto coefficients = scene.preset.coefficients;
     const double size = scene.bounds.radius();
-
-    DrawGrid(16, 0.25f);
-
-    glm::dvec3 previous = horner1(coefficients, 0.0);
-    for (int i = 1; i <= curve_segments; ++i) {
-        const glm::dvec3 p = horner1(coefficients, i / static_cast<double>(curve_segments));
-        DrawLine3D(to_vector3(previous), to_vector3(p), DARKGRAY);
-        previous = p;
-    }
-
+    const std::vector<glm::dvec3> curve = curve_polyline(coefficients);
     const std::vector<glm::dvec3> chain = term_chain(coefficients, u);
     assert(chain.back() == horner1(coefficients, u));
+
+    if (scene.preset.is_3d) {
+        draw_floor(scene, curve, chain.back());
+    } else {
+        // A 2D preset lies in the grid's plane, z = 0, so the grid's axes are its axes.
+        DrawGrid(16, 0.25f);
+    }
+
+    draw_polyline(curve, DARKGRAY);
 
     DrawSphere(to_vector3(chain.front()), static_cast<float>(a0_radius * size), term_color(0));
     for (std::size_t k = 1; k < chain.size(); ++k) {
