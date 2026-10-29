@@ -39,21 +39,21 @@ inline constexpr std::array twisted_cubic{glm::dvec3{-1.0, -1.0, -1.0}, glm::dve
 inline constexpr std::array curve_presets{
     CurvePreset{
         .name = "Line",
-        .caption = "One arrow, u*a1, grows linearly with u, so the tip moves along the segment "
+        .caption = "One arrow, u·a₁, grows linearly with u, so the tip moves along the segment "
                    "at constant speed.",
         .coefficients = preset_coefficients::line,
         .is_3d = false,
     },
     CurvePreset{
         .name = "Parabolic arc",
-        .caption = "The u^2*a2 arrow starts tiny and grows fastest, bending the path back down. "
+        .caption = "The u²·a₂ arrow starts tiny and grows fastest, bending the path back down. "
                    "The tip reaches the apex at u = 1/2.",
         .coefficients = preset_coefficients::parabolic_arc,
         .is_3d = false,
     },
     CurvePreset{
         .name = "Twisted cubic",
-        .caption = "Each arrow adds a new direction: u*a1 along x, u^2*a2 along y, u^3*a3 "
+        .caption = "Each arrow adds a new direction: u·a₁ along x, u²·a₂ along y, u³·a₃ "
                    "along z. With three independent directions, the curve leaves every plane.",
         .coefficients = preset_coefficients::twisted_cubic,
         .is_3d = true,

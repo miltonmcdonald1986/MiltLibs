@@ -1,15 +1,15 @@
 #include <raylib.h>
 
 #include "framework/app_loop.hpp"
-#include "horner_presets.hpp"
 #include "horner_view.hpp"
 
 int main() {
-    constexpr milt::runner::AppConfig config{.width = 800, .height = 600, .title = "NURBS runner"};
+    constexpr milt::runner::AppConfig config{.width = 1100, .height = 650, .title = "NURBS runner"};
+
+    constexpr ScreenSize screen{.width = config.width, .height = config.height};
 
     ViewState state;
-    const Scene scene =
-        make_scene(curve_presets.front(), static_cast<double>(config.width) / config.height);
+    Scene scene = make_scene(state.preset, screen);
 
     milt::runner::run_app(config, [&] {
         ClearBackground(RAYWHITE);
@@ -17,6 +17,11 @@ int main() {
         draw_scene(scene, state.u);
         EndMode3D();
         draw_labels(scene, state.u);
-        state = draw_controls(scene.preset, state);
+
+        const ViewState next = draw_controls(scene.preset, state);
+        if (next.preset != state.preset) {
+            scene = make_scene(next.preset, screen);
+        }
+        state = next;
     });
 }

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <raylib.h>
 
 #include "horner_model.hpp"
@@ -10,7 +12,14 @@
 
 /// @brief What the user has chosen to look at.
 struct ViewState {
-    double u = 0.4; ///< The parameter value being evaluated, in [0, 1].
+    std::size_t preset = 0; ///< The index into curve_presets of the curve shown.
+    double u = 0.4;         ///< The parameter value being evaluated, in [0, 1].
+};
+
+/// @brief The window's size in pixels.
+struct ScreenSize {
+    int width;  ///< Width in pixels.
+    int height; ///< Height in pixels.
 };
 
 /// @brief A preset together with the view fitted to it.
@@ -22,15 +31,21 @@ struct Scene {
 
 /// @brief Fits a view to a preset.
 ///
-/// The camera is orthographic and looks straight down at the math z = 0 plane, with math x
-/// pointing right and math y up the screen. It's centered on the preset's bounds and sized to
-/// hold their x-y extent with a margin, whichever of width or height is the tighter fit.
+/// The camera is orthographic and frames the preset's bounds, with a margin, in the part of
+/// the screen right of the control panel.
 ///
-/// @param preset The curve to show.
-/// @param aspect The window's width divided by its height.
+/// - A 2D preset is seen straight down the math z axis, with math x pointing right and math y
+///   up the screen. The view is sized to the bounds' x-y extent.
+/// - A 3D preset is seen from an oblique angle, above and in front, with math z up the screen.
+///   The view is sized to hold the bounds' enclosing sphere, so it holds them from any angle.
+///
+/// @param preset The index into curve_presets of the curve to show.
+/// @param screen The window's size.
+///
+/// @pre `preset < curve_presets.size()`.
 ///
 /// @return The preset, its bounds and the camera.
-[[nodiscard]] Scene make_scene(const CurvePreset& preset, double aspect);
+[[nodiscard]] Scene make_scene(std::size_t preset, ScreenSize screen);
 
 /// @brief Draws a ground grid, the curve on u in [0, 1] and how Horner's method reaches C(u).
 ///
@@ -55,12 +70,16 @@ void draw_scene(const Scene& scene, double u);
 /// @param u     The parameter value being evaluated.
 void draw_labels(const Scene& scene, double u);
 
-/// @brief Draws a raygui panel, titled with the preset's name, holding the u slider.
+/// @brief Draws the raygui control panel down the left of the screen.
+///
+/// From the top, it holds the preset picker, the u slider, the preset's caption and its
+/// coefficients, each in the color of its dot or arrow. The coefficients are read-only.
 ///
 /// Call it between `BeginDrawing` and `EndDrawing`, after `EndMode3D`.
 ///
 /// @param preset  The curve being shown.
 /// @param current The state to show.
 ///
-/// @return The state after this frame's user input.
+/// @return The state after this frame's user input. When its `preset` differs from
+///         `current.preset`, make a new scene for it.
 [[nodiscard]] ViewState draw_controls(const CurvePreset& preset, ViewState current);
