@@ -121,3 +121,33 @@ TEST(Orbit, TargetFollowsThePan) {
     const Orbit moved = milt::runner::panned(orbit, {30.0, 40.0}, 400.0);
     expect_near(milt::runner::orbit_target(moved) - milt::runner::orbit_target(orbit), moved.pan);
 }
+
+TEST(Orbit, PinchedPansWithTheMidpoint) {
+    // Both fingers move by (30, 40), so their spread is unchanged and only the pan happens.
+    const milt::runner::FingerMove move{
+        .before = {.first = {100.0, 100.0}, .second = {200.0, 100.0}},
+        .after = {.first = {130.0, 140.0}, .second = {230.0, 140.0}},
+    };
+    const Orbit moved = milt::runner::pinched(orbit, move, 400.0);
+    expect_near(moved.pan, milt::runner::panned(orbit, {30.0, 40.0}, 400.0).pan);
+    EXPECT_DOUBLE_EQ(moved.fovy, orbit.fovy);
+}
+
+TEST(Orbit, PinchedZoomsInAsTheFingersSpread) {
+    // The spread doubles about a fixed midpoint, so the view halves in size without panning.
+    const milt::runner::FingerMove move{
+        .before = {.first = {150.0, 100.0}, .second = {250.0, 100.0}},
+        .after = {.first = {100.0, 100.0}, .second = {300.0, 100.0}},
+    };
+    const Orbit moved = milt::runner::pinched(orbit, move, 400.0);
+    EXPECT_DOUBLE_EQ(moved.fovy, orbit.fovy / 2.0);
+    expect_near(moved.pan, orbit.pan);
+}
+
+TEST(Orbit, PinchedOnlyPansWhenTheFingersMeet) {
+    const milt::runner::FingerMove move{
+        .before = {.first = {100.0, 100.0}, .second = {100.0, 100.0}},
+        .after = {.first = {100.0, 100.0}, .second = {120.0, 100.0}},
+    };
+    EXPECT_EQ(milt::runner::pinched(orbit, move, 400.0).fovy, orbit.fovy);
+}

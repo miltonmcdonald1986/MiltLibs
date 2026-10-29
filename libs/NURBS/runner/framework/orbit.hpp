@@ -153,4 +153,42 @@ struct OrbitTurn {
     return orbit;
 }
 
+/// @brief Where two fingers are on a touch screen, in pixels, with y down the screen.
+struct FingerPair {
+    glm::dvec2 first;  ///< The first finger.
+    glm::dvec2 second; ///< The second finger.
+};
+
+/// @brief How two fingers moved between frames.
+struct FingerMove {
+    FingerPair before; ///< Where they were.
+    FingerPair after;  ///< Where they are now.
+};
+
+/// @brief Pans and zooms the view as two fingers move, the way a touch screen map does.
+///
+/// The scene follows the fingers' midpoint, as panned() has it follow a drag. Spreading the
+/// fingers apart zooms in, and pinching them together zooms out, by the ratio of how far
+/// apart they are, through zoomed(). If either distance is 0, the view only pans.
+///
+/// @param orbit         The view.
+/// @param move          Where the fingers were and are.
+/// @param screen_height The screen's height in pixels, which the view's fovy spans.
+///
+/// @pre `screen_height > 0`.
+///
+/// @return The panned and zoomed view.
+[[nodiscard]] inline Orbit pinched(Orbit orbit, FingerMove move, double screen_height) {
+    const glm::dvec2 midpoint_before = (move.before.first + move.before.second) / 2.0;
+    const glm::dvec2 midpoint_after = (move.after.first + move.after.second) / 2.0;
+    orbit = panned(orbit, midpoint_after - midpoint_before, screen_height);
+
+    const double spread_before = glm::distance(move.before.first, move.before.second);
+    const double spread_after = glm::distance(move.after.first, move.after.second);
+    if (spread_before > 0.0 && spread_after > 0.0) {
+        orbit = zoomed(orbit, spread_before / spread_after);
+    }
+    return orbit;
+}
+
 } // namespace milt::runner

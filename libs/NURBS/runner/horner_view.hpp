@@ -55,8 +55,9 @@ struct Scene {
 /// @brief Turns, pans and zooms a 3D preset's view from this frame's mouse input.
 ///
 /// Dragging with the left button turns the view, dragging with the right or middle button pans
-/// it and the wheel zooms, except when they start over the control panel, which the panel's
-/// own controls use. A 2D preset's view is fixed,
+/// it and the wheel zooms. On a touch screen, one finger turns it and two pan and pinch-zoom.
+/// None of these act when they start over the control panel, which the panel's own controls
+/// use. A 2D preset's view is fixed,
 /// so its scene comes back unchanged.
 ///
 /// Call it each frame before drawing the scene.
