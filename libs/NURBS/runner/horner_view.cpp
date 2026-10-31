@@ -1,0 +1,442 @@
+#include "horner_view.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <format>
+#include <iterator>
+#include <numbers>
+#include <optional>
+#include <ranges>
+#include <span>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <raygui.h>
+#include <raylib.h>
+#include <rlgl.h>
+
+#include <milt/nurbs/power_basis.hpp>
+
+#include "framework/draw3d.hpp"
+#include "framework/fonts.hpp"
+#include "framework/orbit.hpp"
+#include "framework/orbit_camera.hpp"
+#include "framework/raylib_convert.hpp"
+#include "horner_model.hpp"
+#include "horner_presets.hpp"
+
+namespace {
+
+// u values sampled when fitting the view; 1/64 apart.
+constexpr std::size_t bounds_samples = 65;
+
+// Line segments in the curve's polyline; enough that no corners show.
+constexpr int curve_segments = 200;
+
+// Sizes in the scene, as fractions of Bounds::radius() so every preset looks alike.
+constexpr double arrow_radius = 0.01;
+constexpr double a0_radius = 0.02;
+constexpr double marker_radius = 0.015;
+
+// The direction a 3D preset is seen from: swung this far from the -y side toward +x, and
+// raised this far above the x-y plane.
+constexpr double oblique_yaw = 35.0 * std::numbers::pi / 180.0;
+constexpr double oblique_pitch = 25.0 * std::numbers::pi / 180.0;
+
+// The control panel's layout, in pixels. The panel is a column down the left of the screen,
+// and the scene is framed in the rest.
+constexpr float panel_margin = 10.0f;  // Between the panel's box and the window's edge.
+constexpr float panel_padding = 10.0f; // Between the panel's box and its contents.
+constexpr float panel_content_width = 340.0f;
+constexpr float panel_width = 2.0f * (panel_margin + panel_padding) + panel_content_width;
+constexpr float control_height = 28.0f; // The preset picker and the u slider.
+constexpr float line_height = 22.0f;    // Lines of the caption and coefficients.
+constexpr float section_gap = 12.0f;    // Between the panel's sections.
+
+// Text options shared by everything drawn with ui_font().
+constexpr auto font_size = static_cast<float>(milt::runner::ui_font_size);
+constexpr float spacing = 0.0f; // Glyph spacing, in pixels, on top of the font's own.
+
+// The panel's box on screen, sized to hold a caption and coefficient list this long.
+Rectangle panel_box(std::size_t caption_lines, std::size_t coefficient_count) {
+    // The group box's title sits on its top edge, so the contents start a title's height down.
+    const float height = font_size + 2.0f * control_height + 3.0f * section_gap +
+                         static_cast<float>(caption_lines + coefficient_count) * line_height +
+                         panel_padding;
+    return {.x = panel_margin,
+            .y = panel_margin,
+            .width = panel_width - 2.0f * panel_margin,
+            .height = height};
+}
+
+// The fovy, the visible height in world units, at which an orthographic camera shows
+// `extent`, a world width and height, in the area right of the panel.
+double fitted_fovy(glm::dvec2 extent, ScreenSize screen) {
+    const double aspect = (screen.width - double{panel_width}) / screen.height;
+    return std::max(extent.y, extent.x / aspect);
+}
+
+// How far left of a scene's center a camera's target goes, in view heights, so the center
+// shows mid-way across the area right of the panel instead of mid-screen: half the panel's
+// width.
+double panel_shift(ScreenSize screen) {
+    return panel_width / 2.0 / screen.height;
+}
+
+// Looks straight down the math z axis and fits the bounds' x-y extent.
+Camera3D top_down_camera(const Bounds& bounds, ScreenSize screen) {
+    using milt::runner::to_vector3;
+
+    // Extra room around the bounds, as a factor of their size.
+    constexpr double margin = 1.3;
+
+    const double fovy = fitted_fovy(glm::dvec2{bounds.max - bounds.min} * margin, screen);
+    const glm::dvec3 target = bounds.center() - glm::dvec3{panel_shift(screen) * fovy, 0.0, 0.0};
+    // Far enough above the bounds that none of it is behind the near plane.
+    const glm::dvec3 eye = target + glm::dvec3{0.0, 0.0, bounds.radius() + 1.0};
+
+    return {
+        .position = to_vector3(eye),
+        .target = to_vector3(target),
+        .up = to_vector3({0.0, 1.0, 0.0}),
+        .fovy = static_cast<float>(fovy),
+        .projection = CAMERA_ORTHOGRAPHIC,
+    };
+}
+
+// Starts from oblique_yaw and oblique_pitch and fits the sphere around the bounds, so the
+// bounds fit from any angle the view is turned to.
+milt::runner::Orbit oblique_orbit(const Bounds& bounds, ScreenSize screen) {
+    // Extra room around the sphere, as a factor of its size. The sphere is already looser
+    // than the bounds, so it needs less than top_down_camera.
+    constexpr double margin = 1.1;
+
+    const double fovy = fitted_fovy(glm::dvec2{2.0 * bounds.radius()} * margin, screen);
+    return {
+        .center = bounds.center(),
+        .pan = {0.0, 0.0, 0.0},
+        // Enough to bring any point of the bounds to mid-view, however far it's zoomed in.
+        .max_pan = bounds.radius(),
+        // The bounds lie within radius() of the center and the pivot within max_pan of it,
+        // and the target is the pivot shifted across the view. So along the view the bounds
+        // lie within 2 * radius() of the target, and this far out none are behind the near
+        // plane.
+        .distance = 2.0 * bounds.radius() + 1.0,
+        .yaw = oblique_yaw,
+        .pitch = oblique_pitch,
+        .fovy = fovy,
+        .min_fovy = fovy / 8.0,
+        .max_fovy = fovy * 2.0,
+        .center_shift = panel_shift(screen),
+    };
+}
+
+// The color of a0's dot and of each term's arrow: a0 black, a1 blue, a2 orange, a3 and up
+// green.
+Color term_color(std::size_t k) {
+    switch (k) {
+    case 0:
+        return BLACK;
+    case 1:
+        return BLUE;
+    case 2:
+        return ORANGE;
+    default:
+        return DARKGREEN;
+    }
+}
+
+// n written in subscript digits, such as ₁₂ for 12.
+std::string subscript(std::size_t n) {
+    std::string digits;
+    for (const char digit : std::to_string(n)) {
+        // In UTF-8, the subscript digits U+2080 to U+2089 are E2 82 80 to E2 82 89.
+        digits += "\xE2\x82";
+        digits += static_cast<char>(0x80 + (digit - '0'));
+    }
+    return digits;
+}
+
+// The label for the degree-k term, such as u²·a₂. ui_font() has no superscripts past ³, so
+// higher powers fall back to ^.
+std::string term_label(std::size_t k) {
+    switch (k) {
+    case 1:
+        return "u·a₁";
+    case 2:
+        return "u²·a₂";
+    case 3:
+        return "u³·a₃";
+    default:
+        return std::format("u^{}·a{}", k, subscript(k));
+    }
+}
+
+// The coefficient a_k as text, such as a₁ = (2, 1). A 2D preset's z components are all 0,
+// so they're left out.
+std::string coefficient_text(std::size_t k, glm::dvec3 a, bool is_3d) {
+    return is_3d ? std::format("a{} = ({:g}, {:g}, {:g})", subscript(k), a.x, a.y, a.z)
+                 : std::format("a{} = ({:g}, {:g})", subscript(k), a.x, a.y);
+}
+
+// Breaks text at spaces into lines no wider than `width` pixels in ui_font(). A word wider
+// than `width` gets a line of its own.
+std::vector<std::string> wrap_text(std::string_view text, float width) {
+    const Font& font = milt::runner::ui_font();
+
+    std::vector<std::string> lines;
+    std::string line;
+    for (const auto word_chars : std::views::split(text, ' ')) {
+        const std::string_view word{word_chars.begin(), word_chars.end()};
+        std::string longer = line.empty() ? std::string{word} : std::format("{} {}", line, word);
+        if (!line.empty() && MeasureTextEx(font, longer.c_str(), font_size, spacing).x > width) {
+            lines.push_back(std::move(line));
+            line = word;
+        } else {
+            line = std::move(longer);
+        }
+    }
+    if (!line.empty()) {
+        lines.push_back(std::move(line));
+    }
+    return lines;
+}
+
+// The preset picker's options: the preset names, separated by semicolons.
+std::string preset_names() {
+    std::string names;
+    for (const CurvePreset& preset : curve_presets) {
+        if (!names.empty()) {
+            names += ';';
+        }
+        names += preset.name;
+    }
+    return names;
+}
+
+// The curve on u in [0, 1], as the curve_segments + 1 ends of its polyline's segments.
+std::vector<glm::dvec3> curve_polyline(std::span<const glm::dvec3> coefficients) {
+    std::vector<glm::dvec3> points;
+    points.reserve(curve_segments + 1);
+    for (int i = 0; i <= curve_segments; ++i) {
+        points.push_back(
+            milt::nurbs::horner1(coefficients, i / static_cast<double>(curve_segments)));
+    }
+    return points;
+}
+
+void draw_polyline(std::span<const glm::dvec3> points, Color color) {
+    using milt::runner::to_vector3;
+    for (std::size_t i = 1; i < points.size(); ++i) {
+        DrawLine3D(to_vector3(points[i - 1]), to_vector3(points[i]), color);
+    }
+}
+
+// The math z of the floor that a 3D preset's grid and shadows lie on: a little below the
+// bounds, so shadows of anything lying on their bottom face don't fight it for depth.
+double floor_z(const Bounds& bounds) {
+    constexpr double gap = 0.1; // As a fraction of Bounds::radius().
+    return bounds.min.z - gap * bounds.radius();
+}
+
+// A 3D preset's depth cues, which an orthographic view otherwise lacks: a grid on the floor
+// under the bounds, the curve's shadow on it, and a line dropped from C(u) to its shadow.
+void draw_floor(const Scene& scene, const std::vector<glm::dvec3>& curve, glm::dvec3 tip) {
+    using milt::runner::to_vector3;
+
+    constexpr float grid_spacing = 0.25f;
+    const Color shadow_color = Fade(GRAY, 0.5f);
+
+    const double floor = floor_z(scene.bounds);
+    const auto on_floor = [floor](glm::dvec3 p) { return glm::dvec3{p.x, p.y, floor}; };
+
+    // DrawGrid draws on raylib's ground plane around the origin, so move it under the bounds.
+    // Enough slices to cover the bounds and a cell beyond each side, but no more, so the
+    // grid stays inside the camera's depth range from every angle.
+    const glm::dvec3 center = scene.bounds.center();
+    const glm::dvec3 size = scene.bounds.max - scene.bounds.min;
+    const int slices =
+        2 + 2 * static_cast<int>(std::ceil(std::max(size.x, size.y) / 2.0 / grid_spacing));
+    const Vector3 grid_center = to_vector3(on_floor(center));
+    rlPushMatrix();
+    rlTranslatef(grid_center.x, grid_center.y, grid_center.z);
+    DrawGrid(slices, grid_spacing);
+    rlPopMatrix();
+
+    std::vector<glm::dvec3> shadow;
+    shadow.reserve(curve.size());
+    std::ranges::transform(curve, std::back_inserter(shadow), on_floor);
+    draw_polyline(shadow, shadow_color);
+
+    DrawLine3D(to_vector3(tip), to_vector3(on_floor(tip)), Fade(MAROON, 0.5f));
+    DrawSphere(to_vector3(on_floor(tip)), static_cast<float>(marker_radius * scene.bounds.radius()),
+               shadow_color);
+}
+
+} // namespace
+
+Scene make_scene(std::size_t preset, ScreenSize screen) {
+    assert(preset < curve_presets.size());
+    const CurvePreset& chosen = curve_presets.at(preset);
+    const Bounds bounds = fit_bounds(chosen.coefficients, bounds_samples);
+    if (!chosen.is_3d) {
+        return {.preset = chosen,
+                .bounds = bounds,
+                .camera = top_down_camera(bounds, screen),
+                .orbit = std::nullopt};
+    }
+
+    const milt::runner::OrbitControl orbit{.orbit = oblique_orbit(bounds, screen)};
+    return {.preset = chosen,
+            .bounds = bounds,
+            .camera = milt::runner::orbit_camera(orbit.orbit),
+            .orbit = orbit};
+}
+
+Scene update_camera(Scene scene) {
+    if (scene.orbit) {
+        const Rectangle panel =
+            panel_box(wrap_text(scene.preset.caption, panel_content_width).size(),
+                      scene.preset.coefficients.size());
+        scene.orbit = milt::runner::update_orbit(*scene.orbit, panel);
+        scene.camera = milt::runner::orbit_camera(scene.orbit->orbit);
+    }
+    return scene;
+}
+
+void draw_scene(const Scene& scene, double u) {
+    using milt::nurbs::horner1;
+    using milt::runner::draw_arrow_3d;
+    using milt::runner::to_vector3;
+
+    const auto coefficients = scene.preset.coefficients;
+    const double size = scene.bounds.radius();
+    const std::vector<glm::dvec3> curve = curve_polyline(coefficients);
+    const std::vector<glm::dvec3> chain = term_chain(coefficients, u);
+    assert(chain.back() == horner1(coefficients, u));
+
+    if (scene.preset.is_3d) {
+        draw_floor(scene, curve, chain.back());
+    } else {
+        // A 2D preset lies in the grid's plane, z = 0, so the grid's axes are its axes.
+        DrawGrid(16, 0.25f);
+    }
+
+    draw_polyline(curve, DARKGRAY);
+
+    DrawSphere(to_vector3(chain.front()), static_cast<float>(a0_radius * size), term_color(0));
+    for (std::size_t k = 1; k < chain.size(); ++k) {
+        draw_arrow_3d(chain[k - 1], chain[k], arrow_radius * size, term_color(k));
+    }
+
+    // Only a little wider than an arrow's head, so it covers just the last head's point.
+    DrawSphere(to_vector3(chain.back()), static_cast<float>(marker_radius * size), MAROON);
+}
+
+void draw_labels(const Scene& scene, double u) {
+    using milt::runner::to_vector3;
+
+    const Font& font = milt::runner::ui_font();
+    // The gap between an arrow and the nearest edge of its label, in pixels.
+    constexpr float label_gap = 6.0f;
+    // Arrows shorter than this on screen get no label, so that near u = 0, where the chain
+    // collapses onto a0, the labels don't pile up.
+    constexpr float min_labeled_length = 12.0f;
+
+    const std::vector<glm::dvec3> chain = term_chain(scene.preset.coefficients, u);
+    for (std::size_t k = 1; k < chain.size(); ++k) {
+        const Vector2 from = GetWorldToScreen(to_vector3(chain[k - 1]), scene.camera);
+        const Vector2 to = GetWorldToScreen(to_vector3(chain[k]), scene.camera);
+        const float dx = to.x - from.x;
+        const float dy = to.y - from.y;
+        const float length = std::hypot(dx, dy);
+        if (length < min_labeled_length) {
+            continue;
+        }
+
+        const Vector2 mid{.x = (from.x + to.x) / 2.0f, .y = (from.y + to.y) / 2.0f};
+        // The arrow's screen-space normal, turned away from the previous arrow's tail so the
+        // label doesn't land on that arrow.
+        Vector2 normal{.x = -dy / length, .y = dx / length};
+        if (k >= 2) {
+            const Vector2 back = GetWorldToScreen(to_vector3(chain[k - 2]), scene.camera);
+            if (normal.x * (back.x - mid.x) + normal.y * (back.y - mid.y) > 0.0f) {
+                normal = {.x = -normal.x, .y = -normal.y};
+            }
+        }
+
+        const std::string label = term_label(k);
+        const Vector2 extent = MeasureTextEx(font, label.c_str(), font_size, spacing);
+        // Far enough along the normal that the label's box clears the arrow.
+        const float offset =
+            label_gap + std::abs(normal.x) * extent.x / 2.0f + std::abs(normal.y) * extent.y / 2.0f;
+        // Whole pixels, so the glyphs land on texels and stay sharp.
+        const Vector2 corner{.x = std::round(mid.x + normal.x * offset - extent.x / 2.0f),
+                             .y = std::round(mid.y + normal.y * offset - extent.y / 2.0f)};
+        DrawTextEx(font, label.c_str(), corner, font_size, spacing, term_color(k));
+    }
+}
+
+ViewState draw_controls(const CurvePreset& preset, ViewState current) {
+    // Loading the font also makes it raygui's, in case nothing has drawn text yet.
+    const Font& font = milt::runner::ui_font();
+
+    const std::vector<std::string> caption = wrap_text(preset.caption, panel_content_width);
+    const auto coefficients = preset.coefficients;
+
+    // A group box is only an outline, so fill it to keep the scene from showing through.
+    const Rectangle box = panel_box(caption.size(), coefficients.size());
+    DrawRectangleRec(box,
+                     GetColor(static_cast<unsigned int>(GuiGetStyle(DEFAULT, BACKGROUND_COLOR))));
+    GuiGroupBox(box, "Curve");
+
+    constexpr float left = panel_margin + panel_padding;
+    // The group box's title sits on its top edge, so the contents start below the title.
+    float y = panel_margin + font_size;
+
+    // GuiToggleGroup takes the size of one toggle and lays the rest out in a row.
+    const auto toggle_count = static_cast<float>(curve_presets.size());
+    const auto toggle_gap = static_cast<float>(GuiGetStyle(TOGGLE, GROUP_PADDING));
+    const float toggle_width =
+        (panel_content_width - (toggle_count - 1.0f) * toggle_gap) / toggle_count;
+    auto active = static_cast<int>(current.preset);
+    const std::string names = preset_names();
+    GuiToggleGroup({.x = left, .y = y, .width = toggle_width, .height = control_height},
+                   names.c_str(), &active);
+    current.preset = static_cast<std::size_t>(active);
+    y += control_height + section_gap;
+
+    // Room for the slider's text: "u" on its left and the value, such as 0.40, on its right.
+    constexpr float name_width = 20.0f;
+    constexpr float value_width = 50.0f;
+    // raygui sliders work in float.
+    auto u = static_cast<float>(current.u);
+    const std::string value = std::format("{:.2f}", current.u);
+    GuiSliderBar({.x = left + name_width,
+                  .y = y,
+                  .width = panel_content_width - name_width - value_width,
+                  .height = control_height},
+                 "u", value.c_str(), &u, 0.0f, 1.0f);
+    current.u = u;
+    y += control_height + section_gap;
+
+    for (const std::string& line : caption) {
+        DrawTextEx(font, line.c_str(), {.x = left, .y = y}, font_size, spacing, DARKGRAY);
+        y += line_height;
+    }
+    y += section_gap;
+
+    for (std::size_t k = 0; k < coefficients.size(); ++k) {
+        const std::string text = coefficient_text(k, coefficients[k], preset.is_3d);
+        DrawTextEx(font, text.c_str(), {.x = left, .y = y}, font_size, spacing, term_color(k));
+        y += line_height;
+    }
+
+    return current;
+}

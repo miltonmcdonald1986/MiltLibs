@@ -1,20 +1,29 @@
 #include <raylib.h>
 
 #include "framework/app_loop.hpp"
-#include "framework/viewport.hpp"
-#include "triangle_model.hpp"
-#include "triangle_view.hpp"
+#include "horner_view.hpp"
 
 int main() {
-    constexpr milt::runner::AppConfig config{.width = 800, .height = 600, .title = "NURBS runner"};
-    const milt::runner::Viewport viewport{.center = {config.width / 2.0, config.height / 2.0},
-                                          .pixels_per_unit = 200.0};
-    TriangleModel model;
+    constexpr milt::runner::AppConfig config{.width = 1100, .height = 650, .title = "NURBS runner"};
+
+    constexpr ScreenSize screen{.width = config.width, .height = config.height};
+
+    ViewState state;
+    Scene scene = make_scene(state.preset, screen);
 
     milt::runner::run_app(config, [&] {
+        scene = update_camera(scene);
+
         ClearBackground(RAYWHITE);
-        model.settings = draw_settings_panel(model.settings);
-        model.update(GetFrameTime());
-        draw_triangle(model, viewport);
+        BeginMode3D(scene.camera);
+        draw_scene(scene, state.u);
+        EndMode3D();
+        draw_labels(scene, state.u);
+
+        const ViewState next = draw_controls(scene.preset, state);
+        if (next.preset != state.preset) {
+            scene = make_scene(next.preset, screen);
+        }
+        state = next;
     });
 }
