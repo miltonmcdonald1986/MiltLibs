@@ -7,7 +7,8 @@ set(_milt_embed_script "${CMAKE_CURRENT_LIST_DIR}/embed_file.cmake")
 # Compiles <file>'s bytes into <target>, so it needs no file at run time, not
 # even under Emscripten. The bytes are exposed as
 #   extern const std::span<const unsigned char> <namespace>::<name>;
-# which the target declares itself in one of its headers. <file> is relative
+# which the target declares itself, in the source that uses it unless others
+# need it too. <file> is relative
 # to the current source directory. The source holding the bytes is generated
 # at build time, regenerated when <file> changes, and skipped by clang-tidy.
 function(milt_embed_file target)

@@ -3,14 +3,9 @@
 
 #pragma once
 
-#include <span>
-
 #include <raylib.h>
 
 namespace milt::runner {
-
-/// @brief The bytes of `assets/NotoSans-Regular.ttf`, compiled in by `milt_embed_file`.
-extern const std::span<const unsigned char> noto_sans_regular;
 
 /// @brief The size, in pixels, that ui_font() is loaded at. Draw it at this size to keep it
 /// sharp.

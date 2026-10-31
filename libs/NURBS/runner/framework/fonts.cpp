@@ -1,11 +1,16 @@
 #include "fonts.hpp"
 
+#include <span>
 #include <vector>
 
 #include <raygui.h>
 #include <raylib.h>
 
 namespace milt::runner {
+
+// The bytes of assets/NotoSans-Regular.ttf, compiled in by milt_embed_file. Defined in the
+// generated source, so it can't go in the anonymous namespace.
+extern const std::span<const unsigned char> noto_sans_regular;
 
 namespace {
 
