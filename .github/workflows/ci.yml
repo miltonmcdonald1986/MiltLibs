@@ -226,7 +226,7 @@ jobs:
       # gcov, which is the image's default rather than gcov-14, and picks up
       # every .gcov and coverage file it finds, googletest's included.
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.xml
           disable_search: true
