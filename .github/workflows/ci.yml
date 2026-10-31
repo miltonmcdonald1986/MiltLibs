@@ -69,10 +69,12 @@ jobs:
       - name: Configure
         run: cmake --preset clang-debug
 
-      # The positional regex picks the files to check: everything under libs/
-      # except _deps, which also skips raygui's implementation in cmake/.
+      # The positional regex picks the files to check: everything under libs/,
+      # which skips raygui's implementation in cmake/, except the build tree.
+      # That excludes _deps, and the sources milt_embed_file generates under
+      # build/<preset>/libs/, which don't exist since nothing is built.
       - name: Run clang-tidy
-        run: run-clang-tidy.py -p build/clang-debug -quiet '^(?!.*/_deps/).*/libs/'
+        run: run-clang-tidy.py -p build/clang-debug -quiet '^(?!.*/build/).*/libs/'
 
   # Builds milt_docs, which fails on any Doxygen warning, such as an
   # undocumented parameter. Doxygen is pinned to a release binary because its
